@@ -83,7 +83,7 @@ jobs:
     - name: Set version number
       id: version
       run: |
-        if "${{ steps.find_release.outputs.latest_tag }}" != 'none'; then
+        if [[ "${{ steps.find_release.outputs.latest_tag }}" != "none" ]]; then
           # Extract number from the tag and increment
           current=$(echo "${{ steps.find_release.outputs.latest_tag }}" | grep -o '[0-9]\+')
           echo "new_release_number=$((current + 1))" >> $GITHUB_OUTPUT
