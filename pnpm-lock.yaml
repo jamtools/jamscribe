@@ -9,8 +9,17 @@ importers:
   .:
     dependencies:
       '@jamtools/core':
-        specifier: 0.15.0-rc19
-        version: 0.15.0-rc19(@tonejs/midi@2.0.28)(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+        specifier: 0.15.0-rc20
+        version: 0.15.0-rc20(@tonejs/midi@2.0.28)(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+      '@springboardjs/data-storage':
+        specifier: 0.15.0-rc20
+        version: 0.15.0-rc20(kysely@0.28.1)
+      '@springboardjs/platforms-browser':
+        specifier: 0.15.0-rc20
+        version: 0.15.0-rc20(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+      '@springboardjs/platforms-node':
+        specifier: 0.15.0-rc20
+        version: 0.15.0-rc20(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)
       hono:
         specifier: 4.7.6
         version: 4.7.6
@@ -18,11 +27,14 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0
       springboard:
-        specifier: 0.15.0-rc19
-        version: 0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+        specifier: 0.15.0-rc20
+        version: 0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
       springboard-cli:
-        specifier: 0.15.0-rc19
-        version: 0.15.0-rc19(@springboardjs/platforms-browser@0.15.0-rc19(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@springboardjs/platforms-node@0.15.0-rc19(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(springboard-server@0.15.0-rc19(@springboardjs/data-storage@0.15.0-rc19(kysely@0.28.1))(@trpc/server@10.45.2)(hono@4.7.6)(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+        specifier: 0.15.0-rc20
+        version: 0.15.0-rc20(@springboardjs/platforms-browser@0.15.0-rc20(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@springboardjs/platforms-node@0.15.0-rc20(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(springboard-server@0.15.0-rc20(@springboardjs/data-storage@0.15.0-rc20(kysely@0.28.1))(@trpc/server@10.45.2)(hono@4.7.6)(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+      springboard-server:
+        specifier: 0.15.0-rc20
+        version: 0.15.0-rc20(@springboardjs/data-storage@0.15.0-rc20(kysely@0.28.1))(@trpc/server@10.45.2)(hono@4.7.6)(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
     devDependencies:
       '@types/react':
         specifier: ^19.1.2
@@ -198,11 +210,11 @@ packages:
       '@trpc/server': ^10.10.0 || >11.0.0-rc
       hono: '>=4.*'
 
-  '@jamtools/core@0.15.0-rc19':
-    resolution: {integrity: sha512-JAq7BcZZess6uBoCVSNPUVXT3VFXrEkSk313i+hMIxTt+K41anewmVlvkGnghkyJf/4DUZxH0bGhZFy/7jn3NQ==}
+  '@jamtools/core@0.15.0-rc20':
+    resolution: {integrity: sha512-ZfpSYOnCQnwS4AUUljF9dMFmcaKArGwNbpGYitkfZ5tUIJdMMNhVxC47YSpA0MFftl/Kk2cZGOabFHPYw/GKIQ==}
     peerDependencies:
       '@tonejs/midi': ^2.0.0
-      springboard: 0.15.0-rc19
+      springboard: 0.15.0-rc20
 
   '@julusian/midi@3.6.1':
     resolution: {integrity: sha512-sC6tTMAMZsHOQILAv/R0On5tKKhzBQUjdyYWzh9l0UQeNry12CFIyRWK1Mep5xCHWCTUB0w4gxngpciA5PgN/Q==}
@@ -212,22 +224,22 @@ packages:
     resolution: {integrity: sha512-O3rHJzAQKamUz1fvE0Qaw0xSFqsA/yafi2iqeE0pvdFtCO1viYx8QL6f3Ln/aCCTLxs68SLf0KPM9eSeM8yBnA==}
     engines: {node: '>=14.0.0'}
 
-  '@springboardjs/data-storage@0.15.0-rc19':
-    resolution: {integrity: sha512-HW5W9Y5rZ8B4JUcQoO+Xg9973UAOi/qTnzmWbhA1KJohBRHzw8ffhkCKxqLFtVrVy2owE2L0oo0IZgUhFC3/pA==}
+  '@springboardjs/data-storage@0.15.0-rc20':
+    resolution: {integrity: sha512-ff7kd/NgieXQj/15644NTVvWz904oNXIpJ7BSrjlBnmsRGDRHrt9YrCB3v03Y1NXCn/3GsM4qiMO13MEDCcq1Q==}
     peerDependencies:
       kysely: '>= 0.24.0'
 
-  '@springboardjs/platforms-browser@0.15.0-rc19':
-    resolution: {integrity: sha512-R2inBKRjEdBNTdocuhND9RJdv810QIStXeSj2K8pNnTWMPFaBEdOL6Mf2hRLu7a1lyYuy/JuFoCsqWDcqsjK7g==}
+  '@springboardjs/platforms-browser@0.15.0-rc20':
+    resolution: {integrity: sha512-6EcpEeEcgTYCbvXmiUZTvm/gL7hq23js9bA1tlWi9RmHnH5kIQSUACSuJwF87Yu4o+amOSMrD4yXZBg73l2e9g==}
     peerDependencies:
       react-router-dom: ^6
-      springboard: 0.15.0-rc19
+      springboard: 0.15.0-rc20
 
-  '@springboardjs/platforms-node@0.15.0-rc19':
-    resolution: {integrity: sha512-a/sftaPQ1cZ/nnfN1X81TCrXPLbssUQJvT+6Jqa0/M7UnjY4G0TjTYEwTUu38MqnpH9m8pZovGtOTWBVHsioZA==}
+  '@springboardjs/platforms-node@0.15.0-rc20':
+    resolution: {integrity: sha512-gEeC8HIWHPTH48nMVXaLJDXi1cWPc9o5ZDEA+v3dsob2/5YPQ4+JLXoIDPWKO7hqKDlbeSiiUC3LwJjHdq514A==}
     peerDependencies:
       isomorphic-ws: ^4.0.1
-      springboard: 0.15.0-rc19
+      springboard: 0.15.0-rc20
       ws: ^8.18.0
 
   '@tonejs/midi@2.0.28':
@@ -581,24 +593,24 @@ packages:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
 
-  springboard-cli@0.15.0-rc19:
-    resolution: {integrity: sha512-zCQh2QDEWZsF0PjHnsLRqLdObPXwJ8BnMSQzjhPsdBa5D9c1Lx348e5FLo9TdVU241df699nVzvUXTUhBWnHJQ==}
+  springboard-cli@0.15.0-rc20:
+    resolution: {integrity: sha512-yfO+YVR8RuMfSOWfawnRVq4ep+j+DpGf53Ul+cJx8DlgN0GqcAdMAMJalALiFiTExN2SAYHCUK/F+WnYNnhtJQ==}
     hasBin: true
     peerDependencies:
-      '@springboardjs/platforms-browser': 0.15.0-rc19
-      '@springboardjs/platforms-node': 0.15.0-rc19
-      springboard: 0.15.0-rc19
-      springboard-server: 0.15.0-rc19
+      '@springboardjs/platforms-browser': 0.15.0-rc20
+      '@springboardjs/platforms-node': 0.15.0-rc20
+      springboard: 0.15.0-rc20
+      springboard-server: 0.15.0-rc20
 
-  springboard-server@0.15.0-rc19:
-    resolution: {integrity: sha512-/P0ImAOfI4dz8thrhBBMYv5LSu5Af2no+D9fsGtFwBo3byGc6dOH3mTRsZ6pzosKu1A35CXN+m0qCys2/5qd9A==}
+  springboard-server@0.15.0-rc20:
+    resolution: {integrity: sha512-sEbT8bXwY5fF9/DmWBU6l+zrbwOSNPa+Mr+cdjHfbkgc1Tij/Zxl7O9f6o00HIQNA+kBrQrAuxy5G/LzHv4rGg==}
     peerDependencies:
-      '@springboardjs/data-storage': 0.15.0-rc19
+      '@springboardjs/data-storage': 0.15.0-rc20
       hono: ^4.6.7
-      springboard: 0.15.0-rc19
+      springboard: 0.15.0-rc20
 
-  springboard@0.15.0-rc19:
-    resolution: {integrity: sha512-LDRLoCiFo9fTS/j8/9t5LPg5GlMzFlxW5CpyMHIXcl/OaehqFhagQ1GIy8gEo13SZIvEeVm5Fnwhjr8N2eKrGg==}
+  springboard@0.15.0-rc20:
+    resolution: {integrity: sha512-Hy1wu2Mk8b+3hyRPppy/hiwRF9HHQ7qeOjW2l6MS7AKrD7Dt2HygkgaH5sXZySE8N9cJQodj1WkBPpvxMuI/Cw==}
     peerDependencies:
       '@trpc/client': ^10.45.2
       json-rpc-2.0: ^1.7.0
@@ -792,13 +804,13 @@ snapshots:
       '@trpc/server': 10.45.2
       hono: 4.7.6
 
-  '@jamtools/core@0.15.0-rc19(@tonejs/midi@2.0.28)(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))':
+  '@jamtools/core@0.15.0-rc20(@tonejs/midi@2.0.28)(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))':
     dependencies:
       '@tonejs/midi': 2.0.28
       easymidi: 3.1.0
       midi-file: 1.2.4
       soundfont-player: 0.12.0
-      springboard: 0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard: 0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
       webmidi: 3.1.12
 
   '@julusian/midi@3.6.1':
@@ -808,7 +820,7 @@ snapshots:
 
   '@remix-run/router@1.23.0': {}
 
-  '@springboardjs/data-storage@0.15.0-rc19(kysely@0.28.1)':
+  '@springboardjs/data-storage@0.15.0-rc20(kysely@0.28.1)':
     dependencies:
       '@trpc/client': 10.45.2(@trpc/server@10.45.2)
       '@trpc/server': 10.45.2
@@ -819,15 +831,15 @@ snapshots:
     transitivePeerDependencies:
       - pg-native
 
-  '@springboardjs/platforms-browser@0.15.0-rc19(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))':
+  '@springboardjs/platforms-browser@0.15.0-rc20(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))':
     dependencies:
       react-router-dom: 6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      springboard: 0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard: 0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
 
-  '@springboardjs/platforms-node@0.15.0-rc19(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)':
+  '@springboardjs/platforms-node@0.15.0-rc20(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)':
     dependencies:
       isomorphic-ws: 4.0.1(ws@8.18.1)
-      springboard: 0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard: 0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
       ws: 8.18.1
 
   '@tonejs/midi@2.0.28':
@@ -1178,31 +1190,31 @@ snapshots:
 
   split2@4.2.0: {}
 
-  springboard-cli@0.15.0-rc19(@springboardjs/platforms-browser@0.15.0-rc19(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@springboardjs/platforms-node@0.15.0-rc19(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(springboard-server@0.15.0-rc19(@springboardjs/data-storage@0.15.0-rc19(kysely@0.28.1))(@trpc/server@10.45.2)(hono@4.7.6)(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)):
+  springboard-cli@0.15.0-rc20(@springboardjs/platforms-browser@0.15.0-rc20(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@springboardjs/platforms-node@0.15.0-rc20(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(springboard-server@0.15.0-rc20(@springboardjs/data-storage@0.15.0-rc20(kysely@0.28.1))(@trpc/server@10.45.2)(hono@4.7.6)(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)):
     dependencies:
-      '@springboardjs/platforms-browser': 0.15.0-rc19(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
-      '@springboardjs/platforms-node': 0.15.0-rc19(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)
+      '@springboardjs/platforms-browser': 0.15.0-rc20(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+      '@springboardjs/platforms-node': 0.15.0-rc20(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)
       commander: 12.1.0
       concurrently: 9.1.2
       esbuild: 0.23.1
-      springboard: 0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
-      springboard-server: 0.15.0-rc19(@springboardjs/data-storage@0.15.0-rc19(kysely@0.28.1))(@trpc/server@10.45.2)(hono@4.7.6)(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+      springboard: 0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard-server: 0.15.0-rc20(@springboardjs/data-storage@0.15.0-rc20(kysely@0.28.1))(@trpc/server@10.45.2)(hono@4.7.6)(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
       typescript: 5.8.3
 
-  springboard-server@0.15.0-rc19(@springboardjs/data-storage@0.15.0-rc19(kysely@0.28.1))(@trpc/server@10.45.2)(hono@4.7.6)(springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)):
+  springboard-server@0.15.0-rc20(@springboardjs/data-storage@0.15.0-rc20(kysely@0.28.1))(@trpc/server@10.45.2)(hono@4.7.6)(springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)):
     dependencies:
       '@hono/node-server': 1.14.1(hono@4.7.6)
       '@hono/node-ws': 1.1.1(@hono/node-server@1.14.1(hono@4.7.6))(hono@4.7.6)
       '@hono/trpc-server': 0.3.4(@trpc/server@10.45.2)(hono@4.7.6)
-      '@springboardjs/data-storage': 0.15.0-rc19(kysely@0.28.1)
+      '@springboardjs/data-storage': 0.15.0-rc20(kysely@0.28.1)
       hono: 4.7.6
-      springboard: 0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard: 0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
     transitivePeerDependencies:
       - '@trpc/server'
       - bufferutil
       - utf-8-validate
 
-  springboard@0.15.0-rc19(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2):
+  springboard@0.15.0-rc20(@trpc/client@10.45.2(@trpc/server@10.45.2))(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2):
     dependencies:
       '@trpc/client': 10.45.2(@trpc/server@10.45.2)
       dexie: 4.0.11
