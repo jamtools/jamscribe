@@ -1,0 +1,23 @@
+{
+  "name": "jamscribe",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "sb dev src/index.tsx",
+    "build": "sb build src/index.tsx"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@jamtools/core": "0.15.0-rc19",
+    "hono": "4.7.6",
+    "react": "^19.1.0",
+    "springboard": "0.15.0-rc19",
+    "springboard-cli": "0.15.0-rc19"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2"
+  }
+}

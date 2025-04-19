@@ -1,0 +1,112 @@
+name: JamScribe release
+
+on:
+  push:
+    branches:
+      - "*"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Ref to use in application repo'
+        required: false
+        default: 'main'
+  # repository_dispatch:
+  #   types: [ build-remote ]
+
+env:
+  TARGET_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref != '' && github.event.inputs.ref || github.event_name == 'repository_dispatch' && github.event.client_payload.sha != '' && github.event.client_payload.sha || 'main' }}
+
+jobs:
+  release-jamscribe:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ secrets.REPO }}
+        token: ${{ secrets.REPO_TOKEN }}
+        ref: ${{ env.TARGET_BRANCH }}
+
+    - name: Install zipcmp
+      run: sudo apt-get update && sudo apt-get install -y zipcmp
+
+    - name: Checkout songdrive-releases repo into `.github/composite-actions`
+      uses: actions/checkout@v3
+      with:
+        repository: jamtools/songdrive-releases
+        path: .github/composite-actions
+        ref: ${{ github.sha }}
+
+    - name: Run build composite action
+      uses: ./.github/composite-actions/.github/actions/build_app
+      with:
+        entrypoint: src/index.tsx
+
+    - name: Create dist.zip
+      run: |
+        cd dist
+        zip -r ../dist.zip .
+
+    - name: Find latest matching release by tag prefix
+      id: find_release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        PREFIX="vjamscribe-"
+        latest=$(gh release list --repo "${{ github.repository }}" --limit 100 --json tagName,publishedAt \
+          | jq -r --arg prefix "$PREFIX" '
+              map(select(.tagName | startswith($prefix)))
+              | sort_by(.publishedAt)
+              | last
+              | .tagName[1:]
+            ')
+        echo "latest_tag=$latest" >> $GITHUB_OUTPUT
+
+    - name: Download artifact from latest release
+      if: steps.find_release.outputs.latest_tag != ''
+      uses: blauqs/actions-download-asset@master
+      with:
+        repo: ${{ github.repository }}
+        version: ${{ steps.find_release.outputs.latest_tag }}
+        file: dist.zip
+        out: previous_release.zip
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Compare ZIP files using zipcmp
+      id: compare_zips
+      run: |
+        if zipcmp dist.zip previous_release.zip; then
+          echo "match=true" >> $GITHUB_OUTPUT
+        else
+          echo "match=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Set version number
+      id: version
+      run: |
+        if [ -n "${{ steps.find_release.outputs.latest_tag }}" ]; then
+          # Extract number from the tag and increment
+          current=$(echo "${{ steps.find_release.outputs.latest_tag }}" | grep -o '[0-9]\+')
+          echo "number=$((current + 1))" >> $GITHUB_OUTPUT
+        else
+          echo "number=1" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create new release
+      if: steps.compare_zips.outputs.match == 'false'
+      uses: ncipollo/release-action@v1
+      with:
+        tag: vjamscribe-${{ steps.version.outputs.number }}
+        name: JamScribe v${{ steps.version.outputs.number }}
+        body: Automated release
+        artifacts: dist.zip
+        token: ${{ secrets.GITHUB_TOKEN }}
+        makeLatest: true
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: jamscribe-dist
+        path: dist.zip
