@@ -56,12 +56,12 @@ jobs:
               map(select(.tagName | startswith($prefix)))
               | sort_by(.publishedAt)
               | last
-              | .tagName[1:]
+              | if . == null then "none" else .tagName[1:] end
             ')
         echo "latest_tag=$latest" >> $GITHUB_OUTPUT
 
     - name: Download artifact from latest release
-      if: steps.find_release.outputs.latest_tag != ''
+      if: steps.find_release.outputs.latest_tag != 'none'
       uses: blauqs/actions-download-asset@master
       with:
         repo: ${{ github.repository }}
@@ -72,6 +72,7 @@ jobs:
 
     - name: Compare ZIP files using zipcmp
       id: compare_zips
+      if: steps.find_release.outputs.latest_tag != 'none'
       run: |
         if zipcmp dist.zip previous_release.zip; then
           echo "match=true" >> $GITHUB_OUTPUT
@@ -82,20 +83,20 @@ jobs:
     - name: Set version number
       id: version
       run: |
-        if [ -n "${{ steps.find_release.outputs.latest_tag }}" ]; then
+        if "${{ steps.find_release.outputs.latest_tag }}" != 'none'; then
           # Extract number from the tag and increment
           current=$(echo "${{ steps.find_release.outputs.latest_tag }}" | grep -o '[0-9]\+')
-          echo "number=$((current + 1))" >> $GITHUB_OUTPUT
+          echo "new_release_number=$((current + 1))" >> $GITHUB_OUTPUT
         else
-          echo "number=1" >> $GITHUB_OUTPUT
+          echo "new_release_number=1" >> $GITHUB_OUTPUT
         fi
 
     - name: Create new release
       if: steps.compare_zips.outputs.match == 'false'
       uses: ncipollo/release-action@v1
       with:
-        tag: vjamscribe-${{ steps.version.outputs.number }}
-        name: JamScribe v${{ steps.version.outputs.number }}
+        tag: vjamscribe-${{ steps.version.outputs.new_release_number }}
+        name: JamScribe v${{ steps.version.outputs.new_release_number }}
         body: Automated release
         artifacts: dist.zip
         token: ${{ secrets.GITHUB_TOKEN }}
