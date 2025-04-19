@@ -33,7 +33,7 @@ jobs:
       with:
         repository: jamtools/songdrive-releases
         path: .github/composite-actions
-        ref: ${{ github.sha }}
+        ref: dev
 
     - name: Run build composite action
       uses: ./.github/composite-actions/.github/actions/build_app
