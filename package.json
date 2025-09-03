@@ -1,0 +1,27 @@
+{
+  "name": "jamscribe",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "sb dev src/index.tsx",
+    "build": "sb build src/index.tsx"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@jamtools/core": "0.15.0-rc20",
+    "@springboardjs/data-storage": "0.15.0-rc20",
+    "@springboardjs/platforms-browser": "0.15.0-rc20",
+    "@springboardjs/platforms-node": "0.15.0-rc20",
+    "hono": "4.7.6",
+    "react": "^19.1.0",
+    "springboard": "0.15.0-rc20",
+    "springboard-cli": "0.15.0-rc20",
+    "springboard-server": "0.15.0-rc20"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2"
+  }
+}
