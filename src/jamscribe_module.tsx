@@ -1,5 +1,5 @@
 // TODO: useState isn't working for some reason
-import React from 'react';
+import React, {useState} from 'react';
 
 import springboard from 'springboard';
 
@@ -25,6 +25,9 @@ fileSaver = {
 // @platform end
 
 import {MidiRecorderImpl} from './services/recorder';
+import {ConfigModal} from './components/ConfigModal';
+import {MidiDevices} from './components/MidiDevices';
+import './styles.css';
 
 type DraftedFile = {
     name: string;
@@ -122,51 +125,81 @@ const Main = ({
     onDraftInactivityTimeLimitChange,
     submitInactivityTimeLimitChange
 }: MainProps) => {
+    const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+
     return (
-        <>
-            <details>
-                <summary>
-                    Config
-                </summary>
-                <pre>
-                    {JSON.stringify(recordingConfig, null, 2)}
-                </pre>
-                <input
-                    type='number'
-                    value={draftInactivityTimeLimit}
-                    onChange={(e) => onDraftInactivityTimeLimitChange(parseInt(e.target.value))}
-                />
+        <div className="app-container">
+            <header className="app-header">
+                <h1 className="app-title">🎵 JamScribe</h1>
                 <button
                     type='button'
-                    onClick={() => submitInactivityTimeLimitChange()}
+                    className='btn-primary'
+                    onClick={() => setIsConfigModalOpen(true)}
                 >
-                    Submit
+                    ⚙️ Settings
                 </button>
-            </details>
-            <div style={{border: '1px solid'}}>
-                Files
-                <ul>
-                    {availableFiles.map(file => (
-                        <li
-                            key={file.name}
-                            onClick={() => {
+            </header>
 
-                            }}
-                        >
-                            {file.name}
-                        </li>
-                    ))}
-                </ul>
+            <ConfigModal
+                isOpen={isConfigModalOpen}
+                onClose={() => setIsConfigModalOpen(false)}
+                recordingConfig={recordingConfig}
+                draftInactivityTimeLimit={draftInactivityTimeLimit}
+                onDraftInactivityTimeLimitChange={onDraftInactivityTimeLimitChange}
+                submitInactivityTimeLimitChange={submitInactivityTimeLimitChange}
+            />
+
+            <div className="main-grid">
+                <div>
+                    <MidiDevices />
+
+                    <div className="card">
+                        <div className="card-header">
+                            <h2 className="card-title">📁 Recorded Files</h2>
+                        </div>
+                        {availableFiles.length > 0 ? (
+                            <div className="files-grid">
+                                {availableFiles.map(file => (
+                                    <div
+                                        key={file.name}
+                                        className="file-item fade-in"
+                                        onClick={() => {
+                                            // Handle file click
+                                        }}
+                                    >
+                                        <div className="file-icon">🎼</div>
+                                        <div className="file-name">{file.name}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="empty-state">
+                                <div className="empty-state-icon">📭</div>
+                                <p className="text-muted">No recordings yet. Start playing to record MIDI!</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="card logs-card">
+                    <div className="card-header">
+                        <h2 className="card-title">📋 Activity Log</h2>
+                    </div>
+                    <ul className="log-list">
+                        {logs.length > 0 ? (
+                            logs.map((msg, i) => (
+                                <li key={i} className="log-item fade-in">
+                                    {msg}
+                                </li>
+                            ))
+                        ) : (
+                            <li className="log-item text-muted">
+                                Waiting for activity...
+                            </li>
+                        )}
+                    </ul>
+                </div>
             </div>
-            <div style={{border: '1px solid'}}>
-                <ul>
-                    {logs.map((msg, i) => (
-                        <li key={i}>
-                            {msg}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </>
+        </div>
     );
 }
