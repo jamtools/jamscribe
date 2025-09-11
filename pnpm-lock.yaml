@@ -9,17 +9,17 @@ importers:
   .:
     dependencies:
       '@jamtools/core':
-        specifier: 0.16.0
-        version: 0.16.0(@springboardjs/platforms-browser@0.16.0(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@tonejs/midi@2.0.28)(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+        specifier: 0.0.1-dev-midipoller-1
+        version: 0.0.1-dev-midipoller-1(@springboardjs/platforms-browser@0.0.1-dev-midipoller-1(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@tonejs/midi@2.0.28)(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
       '@springboardjs/data-storage':
-        specifier: 0.16.0
-        version: 0.16.0(kysely@0.28.1)
+        specifier: 0.0.1-dev-midipoller-1
+        version: 0.0.1-dev-midipoller-1(kysely@0.28.1)
       '@springboardjs/platforms-browser':
-        specifier: 0.16.0
-        version: 0.16.0(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+        specifier: 0.0.1-dev-midipoller-1
+        version: 0.0.1-dev-midipoller-1(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
       '@springboardjs/platforms-node':
-        specifier: 0.16.0
-        version: 0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)
+        specifier: 0.0.1-dev-midipoller-1
+        version: 0.0.1-dev-midipoller-1(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)
       hono:
         specifier: 4.7.6
         version: 4.7.6
@@ -30,14 +30,14 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0
       springboard:
-        specifier: 0.16.0
-        version: 0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+        specifier: 0.0.1-dev-midipoller-1
+        version: 0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
       springboard-cli:
-        specifier: 0.16.0
-        version: 0.16.0(@springboardjs/platforms-browser@0.16.0(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@springboardjs/platforms-node@0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(springboard-server@0.16.0(@springboardjs/data-storage@0.16.0(kysely@0.28.1))(@springboardjs/platforms-node@0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(hono@4.7.6)(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+        specifier: 0.0.1-dev-midipoller-1
+        version: 0.0.1-dev-midipoller-1(bfcad46c28e361a461b4556f25d6c4d5)
       springboard-server:
-        specifier: 0.16.0
-        version: 0.16.0(@springboardjs/data-storage@0.16.0(kysely@0.28.1))(@springboardjs/platforms-node@0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(hono@4.7.6)(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+        specifier: 0.0.1-dev-midipoller-1
+        version: 0.0.1-dev-midipoller-1(@springboardjs/data-storage@0.0.1-dev-midipoller-1(kysely@0.28.1))(@springboardjs/platforms-node@0.0.1-dev-midipoller-1(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(hono@4.7.6)(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
     devDependencies:
       '@types/node':
         specifier: ^24.0.14
@@ -221,12 +221,12 @@ packages:
       '@hono/node-server': ^1.11.1
       hono: ^4.6.0
 
-  '@jamtools/core@0.16.0':
-    resolution: {integrity: sha512-LfQ7EcYly7m1B2UUwoLp/xkhWiJ/ID1KXw7XV/8HYEuatJ7SvbFGAy7MzOhzJPzWi9HZpyj4RcGID6akz9/nZQ==}
+  '@jamtools/core@0.0.1-dev-midipoller-1':
+    resolution: {integrity: sha512-gLFlMvor5nXZlUtimRXVKohuaZNxzph7+2EZA0SEuGFsBGrwlrfmOxmGRqenNzcrmO+G1IVItiacifIiY4q24g==}
     peerDependencies:
-      '@springboardjs/platforms-browser': 0.16.0
+      '@springboardjs/platforms-browser': 0.0.1-dev-midipoller-1
       '@tonejs/midi': ^2.0.0
-      springboard: 0.16.0
+      springboard: 0.0.1-dev-midipoller-1
       svelte: '>= 5'
     peerDependenciesMeta:
       svelte:
@@ -240,22 +240,22 @@ packages:
     resolution: {integrity: sha512-O3rHJzAQKamUz1fvE0Qaw0xSFqsA/yafi2iqeE0pvdFtCO1viYx8QL6f3Ln/aCCTLxs68SLf0KPM9eSeM8yBnA==}
     engines: {node: '>=14.0.0'}
 
-  '@springboardjs/data-storage@0.16.0':
-    resolution: {integrity: sha512-g1KLUtq6kw5BAfuxFjhAzIVR9eLQXwzMNLCRgPU/9KW5NHfL8DUVSUha7Nb7tt+1jPwtH4AIfraDIrSbrbSsBQ==}
+  '@springboardjs/data-storage@0.0.1-dev-midipoller-1':
+    resolution: {integrity: sha512-a1tRfUzr6sUCYnOqG5nB9GqusFYXxaiHCuJAc5QUlpTvqsEvg27mUb6nqpUyLUvhgBFb3E7pbkv9lO1jvA8vzA==}
     peerDependencies:
       kysely: '>= 0.24.0'
 
-  '@springboardjs/platforms-browser@0.16.0':
-    resolution: {integrity: sha512-1XgKgdOtUX3skK6cOy30B2dG7XBDH+yBHmEhIXXc2VJ7L7f9CjuJvTatwApNdV9N1tFe3AQYX5VOpGRmVuhQZQ==}
+  '@springboardjs/platforms-browser@0.0.1-dev-midipoller-1':
+    resolution: {integrity: sha512-LdandEat3Dr6C559sdqgNzNjat4FdytlIoZeUPUpcC6Of8yFd406sYXUpdAZo57ynbwjh/2W9sJzW1fBlxP5DQ==}
     peerDependencies:
       react-router-dom: ^6
-      springboard: 0.16.0
+      springboard: 0.0.1-dev-midipoller-1
 
-  '@springboardjs/platforms-node@0.16.0':
-    resolution: {integrity: sha512-MZvBU0ugpW+NeR5dH93PkGKyDuJd8G2LEg4ysFug6Tgt0HKJ9DqV0AoYy2fKIwsJ+v46BhkO+YlXQlTg8criiA==}
+  '@springboardjs/platforms-node@0.0.1-dev-midipoller-1':
+    resolution: {integrity: sha512-ZRwQ/JsYYz9Ph2nHXs7pYIveTx82+G1hdFKwYOMqlt3oqfJGFQ39cQg5LniPpuakAtQJPGh5fFAzcH+AY+jOyw==}
     peerDependencies:
       isomorphic-ws: ^4.0.1
-      springboard: 0.16.0
+      springboard: 0.0.1-dev-midipoller-1
       ws: ^8.18.0
 
   '@tonejs/midi@2.0.28':
@@ -553,25 +553,25 @@ packages:
   soundfont-player@0.12.0:
     resolution: {integrity: sha512-8BJIsAt7h1PK3thSZDgF6zecgGhYkK74JnZO8WRZi3h34qG6H/DYlnv7cpRvL7Q9C8N6qld4Qwj7nJsX1gYjEA==}
 
-  springboard-cli@0.16.0:
-    resolution: {integrity: sha512-WggFT3NWiReHlDJ/WbjCrXgneCPRqakma960F2UtwxKMwxqahSOHajKU2rTmMMR389FJ5X0IHzJZfqT/kl3S5Q==}
+  springboard-cli@0.0.1-dev-midipoller-1:
+    resolution: {integrity: sha512-M1jR01TLej1umDtIdv9egm5jGwDs2/dLwJD2C5jZDa26brcNPDKOs3MT/GoOx6m0qrk6MzXme0GacCczMA5WEw==}
     hasBin: true
     peerDependencies:
-      '@springboardjs/platforms-browser': 0.16.0
-      '@springboardjs/platforms-node': 0.16.0
-      springboard: 0.16.0
-      springboard-server: 0.16.0
+      '@springboardjs/platforms-browser': 0.0.1-dev-midipoller-1
+      '@springboardjs/platforms-node': 0.0.1-dev-midipoller-1
+      springboard: 0.0.1-dev-midipoller-1
+      springboard-server: 0.0.1-dev-midipoller-1
 
-  springboard-server@0.16.0:
-    resolution: {integrity: sha512-E2XkkZqsuD9Eih36LNRzjSQt2+q/xYR3G5ZHUf/XgjvfhOU2yIb6NoN/IkC2N7rD+B0LfssVpM04K5uCX0JIiQ==}
+  springboard-server@0.0.1-dev-midipoller-1:
+    resolution: {integrity: sha512-uSQhDFW8c+Dk1Di0ZTT9i2q64QsuguFKIFUAcpoWHMxhYxXedK0WXfVO2+S/2gz3nmIm6biIhgt3IzGLULfNiA==}
     peerDependencies:
-      '@springboardjs/data-storage': 0.16.0
-      '@springboardjs/platforms-node': 0.16.0
+      '@springboardjs/data-storage': 0.0.1-dev-midipoller-1
+      '@springboardjs/platforms-node': 0.0.1-dev-midipoller-1
       hono: ^4.6.7
-      springboard: 0.16.0
+      springboard: 0.0.1-dev-midipoller-1
 
-  springboard@0.16.0:
-    resolution: {integrity: sha512-W+3Pkum1dw/RCh+q5LmhPFvUGFY9mfnFlU43JiJ+AX9IFuKG5iPG0oH8dYh0XJVZ1BxTmNnAr2r0m5a8qJeqUA==}
+  springboard@0.0.1-dev-midipoller-1:
+    resolution: {integrity: sha512-m/8PQUMIJzw6F1UE7wCMkSlL3x4W7zXwn5yCkCI9jlwvh8xQcPto6NnfzU4RcfmbkJtxNjvgW5zgBaMCJYgfiw==}
     peerDependencies:
       immer: ^10.1.1
       json-rpc-2.0: ^1.7.0
@@ -765,15 +765,15 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@jamtools/core@0.16.0(@springboardjs/platforms-browser@0.16.0(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@tonejs/midi@2.0.28)(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))':
+  '@jamtools/core@0.0.1-dev-midipoller-1(@springboardjs/platforms-browser@0.0.1-dev-midipoller-1(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@tonejs/midi@2.0.28)(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))':
     dependencies:
-      '@springboardjs/platforms-browser': 0.16.0(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+      '@springboardjs/platforms-browser': 0.0.1-dev-midipoller-1(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
       '@tonejs/midi': 2.0.28
       easymidi: 3.1.0
       immer: 10.1.1
       midi-file: 1.2.4
       soundfont-player: 0.12.0
-      springboard: 0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard: 0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
       webmidi: 3.1.12
 
   '@julusian/midi@3.6.1':
@@ -783,25 +783,25 @@ snapshots:
 
   '@remix-run/router@1.23.0': {}
 
-  '@springboardjs/data-storage@0.16.0(kysely@0.28.1)':
+  '@springboardjs/data-storage@0.0.1-dev-midipoller-1(kysely@0.28.1)':
     dependencies:
       better-sqlite3: 11.9.1
       kysely: 0.28.1
       zod: 3.24.3
 
-  '@springboardjs/platforms-browser@0.16.0(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))':
+  '@springboardjs/platforms-browser@0.0.1-dev-midipoller-1(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))':
     dependencies:
       json-rpc-2.0: 1.7.0
       react-router-dom: 6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       reconnecting-websocket: 4.4.0
-      springboard: 0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard: 0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
 
-  '@springboardjs/platforms-node@0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)':
+  '@springboardjs/platforms-node@0.0.1-dev-midipoller-1(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)':
     dependencies:
       isomorphic-ws: 4.0.1(ws@8.18.1)
       json-rpc-2.0: 1.7.0
       reconnecting-websocket: 4.4.0
-      springboard: 0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard: 0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
       ws: 8.18.1
 
   '@tonejs/midi@2.0.28':
@@ -1107,32 +1107,32 @@ snapshots:
       note-parser: 2.0.1
       sample-player: 0.5.5
 
-  springboard-cli@0.16.0(@springboardjs/platforms-browser@0.16.0(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(@springboardjs/platforms-node@0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(springboard-server@0.16.0(@springboardjs/data-storage@0.16.0(kysely@0.28.1))(@springboardjs/platforms-node@0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(hono@4.7.6)(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)):
+  springboard-cli@0.0.1-dev-midipoller-1(bfcad46c28e361a461b4556f25d6c4d5):
     dependencies:
-      '@springboardjs/platforms-browser': 0.16.0(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
-      '@springboardjs/platforms-node': 0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)
+      '@springboardjs/platforms-browser': 0.0.1-dev-midipoller-1(react-router-dom@6.30.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+      '@springboardjs/platforms-node': 0.0.1-dev-midipoller-1(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)
       commander: 12.1.0
       concurrently: 9.1.2
       esbuild: 0.25.9
-      springboard: 0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
-      springboard-server: 0.16.0(@springboardjs/data-storage@0.16.0(kysely@0.28.1))(@springboardjs/platforms-node@0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(hono@4.7.6)(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
+      springboard: 0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard-server: 0.0.1-dev-midipoller-1(@springboardjs/data-storage@0.0.1-dev-midipoller-1(kysely@0.28.1))(@springboardjs/platforms-node@0.0.1-dev-midipoller-1(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(hono@4.7.6)(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))
       tslib: 2.8.1
       typescript: 5.8.3
 
-  springboard-server@0.16.0(@springboardjs/data-storage@0.16.0(kysely@0.28.1))(@springboardjs/platforms-node@0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(hono@4.7.6)(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)):
+  springboard-server@0.0.1-dev-midipoller-1(@springboardjs/data-storage@0.0.1-dev-midipoller-1(kysely@0.28.1))(@springboardjs/platforms-node@0.0.1-dev-midipoller-1(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1))(hono@4.7.6)(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)):
     dependencies:
       '@hono/node-server': 1.14.1(hono@4.7.6)
       '@hono/node-ws': 1.1.1(@hono/node-server@1.14.1(hono@4.7.6))(hono@4.7.6)
-      '@springboardjs/data-storage': 0.16.0(kysely@0.28.1)
-      '@springboardjs/platforms-node': 0.16.0(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)
+      '@springboardjs/data-storage': 0.0.1-dev-midipoller-1(kysely@0.28.1)
+      '@springboardjs/platforms-node': 0.0.1-dev-midipoller-1(isomorphic-ws@4.0.1(ws@8.18.1))(springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2))(ws@8.18.1)
       hono: 4.7.6
       json-rpc-2.0: 1.7.0
-      springboard: 0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
+      springboard: 0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  springboard@0.16.0(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2):
+  springboard@0.0.1-dev-midipoller-1(immer@10.1.1)(json-rpc-2.0@1.7.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(rxjs@7.8.2):
     dependencies:
       dexie: 4.0.11
       immer: 10.1.1
