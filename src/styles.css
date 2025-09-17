@@ -251,10 +251,28 @@ button {
     font-size: 0.875rem;
     color: var(--text-secondary);
     font-family: 'Monaco', 'Consolas', monospace;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    line-height: 1.4;
 }
 
 .log-item:last-child {
     border-bottom: none;
+}
+
+.log-timestamp {
+    flex-shrink: 0;
+    color: var(--text-secondary);
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.log-message {
+    color: var(--text-primary);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    flex: 1;
 }
 
 /* Modal/Dialog styles */

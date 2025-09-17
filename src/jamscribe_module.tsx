@@ -18,8 +18,7 @@ fileSaver = {
             fs.mkdirSync('midi_files')
         }
 
-        const content = buffer.toString();
-        await fs.promises.writeFile(fileName, content);
+        await fs.promises.writeFile(fileName, buffer);
     },
 };
 // @platform end
@@ -46,7 +45,11 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     const recordingConfig = await moduleAPI.statesAPI.createPersistentState('recordingConfig', initialRecordingConfig);
     const draftRecordingConfig = await moduleAPI.statesAPI.createSharedState('draftRecordingConfig', recordingConfig.getState());
 
-    const logMessages = await moduleAPI.statesAPI.createSharedState<string[]>('logMessages', []);
+    type LogMessage = {
+        message: string;
+        timestamp: Date;
+    };
+    const logMessages = await moduleAPI.statesAPI.createSharedState<LogMessage[]>('logMessages', []);
     const draftedFiles = await moduleAPI.statesAPI.createSharedState<DraftedFile[]>('draftedFiles', []);
 
     const changeDraftInactivityTimeLimit = moduleAPI.createAction('changeDraftInactivityTimeLimit', {}, async ({limit}: {limit: number}) => {
@@ -106,8 +109,13 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     recorder.initialize();
 });
 
+type LogMessage = {
+    message: string;
+    timestamp: Date;
+};
+
 type MainProps = {
-    logs: string[];
+    logs: LogMessage[];
     availableFiles: DraftedFile[];
 
     recordingConfig: RecordingConfig;
@@ -187,11 +195,35 @@ const Main = ({
                     </div>
                     <ul className="log-list">
                         {logs.length > 0 ? (
-                            logs.map((msg, i) => (
+                            [...logs].reverse().map((logEntry, i) => {
+                                const formatTime = (date: Date | string | number) => {
+                                    const dateObj = new Date(date);
+                                    const now = new Date();
+                                    const isToday = dateObj.toDateString() === now.toDateString();
+                                    const timeStr = dateObj.toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true
+                                    });
+
+                                    if (isToday) {
+                                        return timeStr;
+                                    } else {
+                                        const dateStr = dateObj.toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric'
+                                        });
+                                        return `${dateStr} ${timeStr}`;
+                                    }
+                                };
+
+                                return (
                                 <li key={i} className="log-item fade-in">
-                                    {msg}
+                                        <span className="log-timestamp">{formatTime(logEntry.timestamp)}</span>
+                                        <span className="log-message">{logEntry.message}</span>
                                 </li>
-                            ))
+                                );
+                            })
                         ) : (
                             <li className="log-item text-muted">
                                 Waiting for activity...
