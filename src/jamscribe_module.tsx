@@ -45,10 +45,6 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     const recordingConfig = await moduleAPI.statesAPI.createPersistentState('recordingConfig', initialRecordingConfig);
     const draftRecordingConfig = await moduleAPI.statesAPI.createSharedState('draftRecordingConfig', recordingConfig.getState());
 
-    type LogMessage = {
-        message: string;
-        timestamp: Date;
-    };
     const logMessages = await moduleAPI.statesAPI.createSharedState<LogMessage[]>('logMessages', []);
     const draftedFiles = await moduleAPI.statesAPI.createSharedState<DraftedFile[]>('draftedFiles', []);
 
@@ -94,7 +90,7 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     const log = (msg: string) => {
         console.log(msg);
         logMessages.setState(logs => {
-            return [...logs, msg]
+            return [...logs, { message: msg, timestamp: new Date(), id: Math.random().toString().slice(2) }]
         });
     }
 
@@ -110,6 +106,7 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
 });
 
 type LogMessage = {
+    id: string;
     message: string;
     timestamp: Date;
 };
@@ -218,7 +215,7 @@ const Main = ({
                                 };
 
                                 return (
-                                <li key={i} className="log-item fade-in">
+                                    <li key={logEntry.id} className='log-item fade-in'>
                                         <span className="log-timestamp">{formatTime(logEntry.timestamp)}</span>
                                         <span className="log-message">{logEntry.message}</span>
                                 </li>

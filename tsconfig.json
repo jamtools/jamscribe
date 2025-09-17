@@ -110,5 +110,5 @@
       // "~/*": ["./packages/jamtools/*"],
     }
   },
-  "exclude": []
+  "exclude": ["./daw", "src/services/audio_recorder.ts"]
 }
