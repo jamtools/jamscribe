@@ -12,16 +12,16 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@jamtools/core": "0.0.1-dev-midipoller-3",
-    "@springboardjs/data-storage": "0.0.1-dev-midipoller-3",
-    "@springboardjs/platforms-browser": "0.0.1-dev-midipoller-3",
-    "@springboardjs/platforms-node": "0.0.1-dev-midipoller-3",
+    "@jamtools/core": "0.0.1-dev-midipoller-4",
+    "@springboardjs/data-storage": "0.0.1-dev-midipoller-4",
+    "@springboardjs/platforms-browser": "0.0.1-dev-midipoller-4",
+    "@springboardjs/platforms-node": "0.0.1-dev-midipoller-4",
     "hono": "4.7.6",
     "mic": "^2.1.2",
     "react": "^19.1.0",
-    "springboard": "0.0.1-dev-midipoller-3",
-    "springboard-cli": "0.0.1-dev-midipoller-3",
-    "springboard-server": "0.0.1-dev-midipoller-3"
+    "springboard": "0.0.1-dev-midipoller-4",
+    "springboard-cli": "0.0.1-dev-midipoller-4",
+    "springboard-server": "0.0.1-dev-midipoller-4"
   },
   "devDependencies": {
     "@types/node": "^24.0.14",
