@@ -8,19 +8,15 @@ import 'springboard/modules/files/files_module';
 
 import type {FileSaver, RecordingConfig} from './services/recorder';
 
+// @platform "node"
+import {uploadFile} from './services/upload_service';
+// @platform end
+
 let fileSaver: FileSaver | undefined;
 
 // @platform "node"
 import fs from 'node:fs';
-fileSaver = {
-    writeFile: async (fileName, buffer) => {
-        if (!fs.existsSync('./midi_files')) {
-            fs.mkdirSync('midi_files')
-        }
-
-        await fs.promises.writeFile(fileName, buffer);
-    },
-};
+// fileSaver will be set inside the module after recordingConfig is available
 // @platform end
 
 import {MidiRecorderImpl} from './services/recorder';
@@ -35,25 +31,51 @@ type DraftedFile = {
 
 const initialRecordingConfig: RecordingConfig = {
     inactivityTimeLimitSeconds: 60,
+    uploaderUrl: '',
 };
 
 springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
-    // @platform "node"
-    await moduleAPI.getModule('io').ensureListening();
-    // @platform end
+    if (moduleAPI.deps.core.isMaestro()) {
+        await moduleAPI.getModule('io').ensureListening();
+    }
 
     const recordingConfig = await moduleAPI.statesAPI.createPersistentState('recordingConfig', initialRecordingConfig);
     const draftRecordingConfig = await moduleAPI.statesAPI.createSharedState('draftRecordingConfig', recordingConfig.getState());
 
+    // @platform "node"
+    fileSaver = {
+        writeFile: async (fileName, buffer) => {
+            if (!fs.existsSync('./midi_files')) {
+                fs.mkdirSync('midi_files')
+            }
+
+            await fs.promises.writeFile(fileName, buffer);
+
+            try {
+                await uploadFile(fileName, 'audio/midi', buffer, recordingConfig.getState().uploaderUrl);
+            } catch (error) {
+                console.error('Upload failed, but file saved locally:', error);
+            }
+        },
+    };
+    // @platform end
+
     const logMessages = await moduleAPI.statesAPI.createSharedState<LogMessage[]>('logMessages', []);
     const draftedFiles = await moduleAPI.statesAPI.createSharedState<DraftedFile[]>('draftedFiles', []);
 
-    const changeDraftInactivityTimeLimit = moduleAPI.createAction('changeDraftInactivityTimeLimit', {}, async ({limit}: {limit: number}) => {
-        draftRecordingConfig.setState(c => ({...c, inactivityTimeLimitSeconds: limit}));
-    });
-
-    const submitInactivityTimeLimit = moduleAPI.createAction('submitInactivityTimeLimit', {}, async () => {
-        recordingConfig.setState(c => ({...c, inactivityTimeLimitSeconds: draftRecordingConfig.getState().inactivityTimeLimitSeconds}));
+    const actions = moduleAPI.createActions({
+        changeDraftInactivityTimeLimit: async ({limit}: {limit: number}) => {
+            draftRecordingConfig.setState(c => ({...c, inactivityTimeLimitSeconds: limit}));
+        },
+        submitInactivityTimeLimit: async () => {
+            recordingConfig.setState(c => ({...c, inactivityTimeLimitSeconds: draftRecordingConfig.getState().inactivityTimeLimitSeconds}));
+        },
+        changeDraftUploaderUrl: async ({url}: {url: string}) => {
+            draftRecordingConfig.setState(c => ({...c, uploaderUrl: url}));
+        },
+        submitUploaderUrl: async () => {
+            recordingConfig.setState(c => ({...c, uploaderUrl: draftRecordingConfig.getState().uploaderUrl}));
+        },
     });
 
     moduleAPI.registerRoute('/', {}, () => (
@@ -63,8 +85,12 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
             recordingConfig={recordingConfig.useState()}
 
             draftInactivityTimeLimit={draftRecordingConfig.useState().inactivityTimeLimitSeconds}
-            onDraftInactivityTimeLimitChange={(limit: number) => changeDraftInactivityTimeLimit({limit})}
-            submitInactivityTimeLimitChange={() => submitInactivityTimeLimit({})}
+            onDraftInactivityTimeLimitChange={(limit: number) => actions.changeDraftInactivityTimeLimit({limit})}
+            submitInactivityTimeLimitChange={() => actions.submitInactivityTimeLimit()}
+
+            draftUploaderUrl={draftRecordingConfig.useState().uploaderUrl}
+            onDraftUploaderUrlChange={(url: string) => actions.changeDraftUploaderUrl({url})}
+            submitUploaderUrlChange={() => actions.submitUploaderUrl()}
         />
     ));
 
@@ -76,7 +102,7 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     // default implementation of file saver
     if (!fileSaver) {
         fileSaver = {
-            writeFile: (fileName, buffer) => {
+            writeFile: async (fileName, buffer) => {
                 const filesModule = moduleAPI.deps.module.moduleRegistry.getModule('Files');
                 const file = new File([
                     new Blob([buffer.toString()])
@@ -120,6 +146,10 @@ type MainProps = {
     draftInactivityTimeLimit: number;
     onDraftInactivityTimeLimitChange: (newLimit: number) => void;
     submitInactivityTimeLimitChange: () => void;
+
+    draftUploaderUrl: string;
+    onDraftUploaderUrlChange: (newUrl: string) => void;
+    submitUploaderUrlChange: () => void;
 }
 
 const Main = ({
@@ -128,7 +158,10 @@ const Main = ({
     recordingConfig,
     draftInactivityTimeLimit,
     onDraftInactivityTimeLimitChange,
-    submitInactivityTimeLimitChange
+    submitInactivityTimeLimitChange,
+    draftUploaderUrl,
+    onDraftUploaderUrlChange,
+    submitUploaderUrlChange
 }: MainProps) => {
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
@@ -152,6 +185,9 @@ const Main = ({
                 draftInactivityTimeLimit={draftInactivityTimeLimit}
                 onDraftInactivityTimeLimitChange={onDraftInactivityTimeLimitChange}
                 submitInactivityTimeLimitChange={submitInactivityTimeLimitChange}
+                draftUploaderUrl={draftUploaderUrl}
+                onDraftUploaderUrlChange={onDraftUploaderUrlChange}
+                submitUploaderUrlChange={submitUploaderUrlChange}
             />
 
             <div className="main-grid">
@@ -192,7 +228,7 @@ const Main = ({
                     </div>
                     <ul className="log-list">
                         {logs.length > 0 ? (
-                            [...logs].reverse().map((logEntry, i) => {
+                            [...logs].reverse().map((logEntry) => {
                                 const formatTime = (date: Date | string | number) => {
                                     const dateObj = new Date(date);
                                     const now = new Date();
@@ -218,7 +254,7 @@ const Main = ({
                                     <li key={logEntry.id} className='log-item fade-in'>
                                         <span className="log-timestamp">{formatTime(logEntry.timestamp)}</span>
                                         <span className="log-message">{logEntry.message}</span>
-                                </li>
+                                    </li>
                                 );
                             })
                         ) : (

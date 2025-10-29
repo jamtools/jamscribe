@@ -8,6 +8,9 @@ type ConfigModalProps = {
     draftInactivityTimeLimit: number;
     onDraftInactivityTimeLimitChange: (newLimit: number) => void;
     submitInactivityTimeLimitChange: () => void;
+    draftUploaderUrl: string;
+    onDraftUploaderUrlChange: (newUrl: string) => void;
+    submitUploaderUrlChange: () => void;
 };
 
 export function asModal<P extends { isOpen: boolean; onClose: () => void }>(
@@ -44,7 +47,10 @@ function ConfigModalBase({
     recordingConfig,
     draftInactivityTimeLimit,
     onDraftInactivityTimeLimitChange,
-    submitInactivityTimeLimitChange
+    submitInactivityTimeLimitChange,
+    draftUploaderUrl,
+    onDraftUploaderUrlChange,
+    submitUploaderUrlChange
 }: ConfigModalProps) {
     return (
         <div>
@@ -69,6 +75,23 @@ function ConfigModalBase({
                         Recording will automatically stop after this many seconds of inactivity
                     </p>
                 </div>
+
+                <div className="form-group">
+                    <label className="form-label" htmlFor="uploader-url">
+                        Uploader URL
+                    </label>
+                    <input
+                        id="uploader-url"
+                        type='text'
+                        className='form-input'
+                        value={draftUploaderUrl}
+                        onChange={(e) => onDraftUploaderUrlChange(e.target.value)}
+                        placeholder="https://example.com/upload"
+                    />
+                    <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
+                        URL endpoint for uploading recorded files (leave empty to disable uploads)
+                    </p>
+                </div>
             </div>
             <div className="modal-footer">
                 <button
@@ -83,6 +106,7 @@ function ConfigModalBase({
                     className='btn-primary'
                     onClick={() => {
                         submitInactivityTimeLimitChange();
+                        submitUploaderUrlChange();
                         onClose();
                     }}
                 >
