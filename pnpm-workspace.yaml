@@ -1,0 +1,4 @@
+onlyBuiltDependencies:
+  - '@julusian/midi'
+  - better-sqlite3
+  - esbuild

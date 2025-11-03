@@ -1,5 +1,6 @@
 // @platform "node"
 import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
 // @platform end
 
 const PART_SIZE = 5 * 1024 * 1024;
@@ -31,6 +32,15 @@ type InitiateData = {
 };
 
 export const uploadFile = async (fileName: string, contentType: string, buffer: Buffer, uploaderUrl: string): Promise<void> => {
+    return uploadFileInternal(fileName, contentType, buffer, uploaderUrl);
+};
+
+export const uploadFileFromPath = async (fileName: string, contentType: string, filePath: string, uploaderUrl: string): Promise<void> => {
+    const buffer = await fs.promises.readFile(filePath);
+    return uploadFileInternal(fileName, contentType, buffer, uploaderUrl);
+};
+
+const uploadFileInternal = async (fileName: string, contentType: string, buffer: Buffer, uploaderUrl: string): Promise<void> => {
     try {
         if (!uploaderUrl) {
             console.log('No uploader URL configured, skipping upload');

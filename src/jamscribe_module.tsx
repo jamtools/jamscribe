@@ -9,7 +9,7 @@ import 'springboard/modules/files/files_module';
 import type {FileSaver, RecordingConfig} from './services/recorder';
 
 // @platform "node"
-import {uploadFile} from './services/upload_service';
+import {uploadFile, uploadFileFromPath} from './services/upload_service';
 // @platform end
 
 let fileSaver: FileSaver | undefined;
@@ -29,6 +29,16 @@ type DraftedFile = {
     buffer: Buffer;
 }
 
+type PendingUpload = {
+    id: string;
+    fileName: string;
+    filePath: string;
+    contentType: string;
+    attempts: number;
+    lastAttemptTime: number;
+    error?: string;
+};
+
 const initialRecordingConfig: RecordingConfig = {
     inactivityTimeLimitSeconds: 60,
     uploaderUrl: '',
@@ -41,6 +51,7 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
 
     const recordingConfig = await moduleAPI.statesAPI.createPersistentState('recordingConfig', initialRecordingConfig);
     const draftRecordingConfig = await moduleAPI.statesAPI.createSharedState('draftRecordingConfig', recordingConfig.getState());
+    const pendingUploads = await moduleAPI.statesAPI.createPersistentState<PendingUpload[]>('pendingUploads', []);
 
     // @platform "node"
     fileSaver = {
@@ -49,15 +60,98 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
                 fs.mkdirSync('midi_files')
             }
 
-            await fs.promises.writeFile(fileName, buffer);
+            const filePath = `./midi_files/${fileName}`;
+            await fs.promises.writeFile(filePath, buffer);
 
             try {
                 await uploadFile(fileName, 'audio/midi', buffer, recordingConfig.getState().uploaderUrl);
             } catch (error) {
-                console.error('Upload failed, but file saved locally:', error);
+                console.error('Upload failed, queuing for retry:', error);
+
+                // Add to pending uploads queue
+                const uploadId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+                pendingUploads.setState(uploads => [
+                    ...uploads,
+                    {
+                        id: uploadId,
+                        fileName,
+                        filePath,
+                        contentType: 'audio/midi',
+                        attempts: 1,
+                        lastAttemptTime: Date.now(),
+                        error: error instanceof Error ? error.message : String(error),
+                    },
+                ]);
             }
         },
     };
+
+    // Retry mechanism with exponential backoff
+    const retryPendingUploads = async () => {
+        const uploads = pendingUploads.getState();
+        const now = Date.now();
+        const MAX_ATTEMPTS = 10;
+
+        for (const upload of uploads) {
+            // Calculate exponential backoff: 1min, 2min, 4min, 8min, 16min, etc.
+            const backoffMinutes = Math.pow(2, upload.attempts - 1);
+            const backoffMs = backoffMinutes * 60 * 1000;
+            const nextAttemptTime = upload.lastAttemptTime + backoffMs;
+
+            // Skip if not time yet or max attempts reached
+            if (now < nextAttemptTime || upload.attempts >= MAX_ATTEMPTS) {
+                continue;
+            }
+
+            try {
+                const uploaderUrl = recordingConfig.getState().uploaderUrl;
+                if (!uploaderUrl) {
+                    continue;
+                }
+
+                await uploadFileFromPath(upload.fileName, upload.contentType, upload.filePath, uploaderUrl);
+
+                // Success! Remove from pending uploads
+                pendingUploads.setState(uploads => uploads.filter(u => u.id !== upload.id));
+                console.log(`Successfully uploaded ${upload.fileName} after ${upload.attempts} attempts`);
+            } catch (error) {
+                // Update attempt count and error
+                pendingUploads.setState(uploads =>
+                    uploads.map(u =>
+                        u.id === upload.id
+                            ? {
+                                ...u,
+                                attempts: u.attempts + 1,
+                                lastAttemptTime: now,
+                                error: error instanceof Error ? error.message : String(error),
+                            }
+                            : u
+                    )
+                );
+                console.error(`Upload retry ${upload.attempts + 1} failed for ${upload.fileName}:`, error);
+
+                // Remove from queue if max attempts reached
+                if (upload.attempts + 1 >= MAX_ATTEMPTS) {
+                    console.error(`Max retry attempts reached for ${upload.fileName}, removing from queue`);
+                    pendingUploads.setState(uploads => uploads.filter(u => u.id !== upload.id));
+                }
+            }
+        }
+    };
+
+    // Check for pending uploads every minute
+    const retryInterval = setInterval(() => {
+        retryPendingUploads().catch(err => {
+            console.error('Error in retry mechanism:', err);
+        });
+    }, 60 * 1000);
+
+    // Try to upload any pending uploads from previous sessions on startup
+    setTimeout(() => {
+        retryPendingUploads().catch(err => {
+            console.error('Error in initial retry attempt:', err);
+        });
+    }, 5000); // Wait 5 seconds after startup
     // @platform end
 
     const logMessages = await moduleAPI.statesAPI.createSharedState<LogMessage[]>('logMessages', []);
