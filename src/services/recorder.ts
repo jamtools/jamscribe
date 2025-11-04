@@ -106,7 +106,7 @@ export class MidiRecorderImpl {
 
     private generateFilename = (deviceName: string): string => {
         const timestamp = new Date().toISOString();
-        const filename = `./midi_files/${deviceName}_${timestamp}_recording.mid`;
+        const filename = `${deviceName}_${timestamp}_recording.mid`;
         return filename;
     };
 
