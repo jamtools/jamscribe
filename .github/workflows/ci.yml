@@ -1,0 +1,45 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                version: 9.13.2
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: 20
+                cache: 'pnpm'
+
+            - name: Install modules
+              run: pnpm i
+            - name: Build app
+              run: npm run build
+
+    types:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                version: 9.13.2
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: 20
+                cache: 'pnpm'
+            - name: Install modules
+              run: pnpm i
+            - name: Check Types
+              run: npm run check-types

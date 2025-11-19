@@ -23,11 +23,12 @@ type Logger = {
 };
 
 export type FileSaver = {
-    writeFile: (fileName: string, buffer: Buffer) => void;
+    writeFile: (fileName: string, buffer: Buffer) => void | Promise<void>;
 }
 
 export type RecordingConfig = {
     inactivityTimeLimitSeconds: number;
+    uploaderUrl: string;
 }
 
 export class MidiRecorderImpl {
@@ -37,6 +38,18 @@ export class MidiRecorderImpl {
     // private INACTIVITY_LIMIT = FIVE_SECONDS;
 
     constructor(private onInputEvent: Subject<MidiEventFull>, private logger: Logger, private fileSaver: FileSaver, private recordingConfigState: StateSupervisor<RecordingConfig>) { }
+
+    private formatDeviceName(deviceName: string): string {
+        // Truncate long device names and remove common suffixes
+        const cleaned = deviceName.replace(/ Air Bluetooth$/, '').replace(/ Bluetooth$/, '');
+        return cleaned.length > 20 ? cleaned.substring(0, 17) + '...' : cleaned;
+    }
+
+    private formatFilePath(filePath: string): string {
+        // Show just the filename without the full path
+        const fileName = filePath.split('/').pop() || filePath;
+        return fileName.length > 30 ? '...' + fileName.substring(fileName.length - 27) : fileName;
+    }
 
     public initialize = () => {
         this.onInputEvent.subscribe(this.handleMidiEvent);
@@ -51,7 +64,7 @@ export class MidiRecorderImpl {
 
         // Store the event in memory
         if (!this.recordedEvents[deviceName]?.length) {
-            this.logger.log(`Started recording ${deviceName}. Will stop after ${this.getInactivityLimit() / 1000} seconds`);
+            this.logger.log(`Started recording ${this.formatDeviceName(deviceName)}`);
             this.recordedEvents[deviceName] = [];
             this.notifyUserOfStartRecording();
         }
@@ -62,7 +75,7 @@ export class MidiRecorderImpl {
 
     // Stop recording and save all recorded MIDI events to a file
     private stopRecordingForAllDevices = () => {
-        this.logger.log('Stopping all recordings due to inactivity...');
+        this.logger.log('Stopping recordings due to inactivity');
         Object.keys(this.recordedEvents).forEach((deviceName) => {
             this.saveRecordedMidiToFile(deviceName);
 
@@ -81,7 +94,7 @@ export class MidiRecorderImpl {
         }
 
         this.deviceTimeouts[deviceName] = setTimeout(() => {
-            this.logger.log(`Device ${deviceName} is now inactive.`);
+            this.logger.log(`${this.formatDeviceName(deviceName)} inactive`);
             this.deviceActivity[deviceName] = false;
 
             const allInactive = Object.values(this.deviceActivity).every(isActive => !isActive);
@@ -93,7 +106,7 @@ export class MidiRecorderImpl {
 
     private generateFilename = (deviceName: string): string => {
         const timestamp = new Date().toISOString();
-        const filename = `./midi_files/${deviceName}_${timestamp}_recording.mid`;
+        const filename = `${deviceName}_${timestamp}_recording.mid`;
         return filename;
     };
 
@@ -132,7 +145,7 @@ export class MidiRecorderImpl {
         try {
             const outputBuffer = Buffer.from(writeMidi(midiData));
             this.fileSaver.writeFile(midiFilePath, outputBuffer);
-            this.logger.log(`MIDI file saved for device: ${deviceName} at ${midiFilePath}`);
+            this.logger.log(`MIDI saved: ${this.formatFilePath(midiFilePath)}`);
             this.notifyUserOfNewRecordedSession();
         } catch (error) {
             this.logger.log(`Error while saving MIDI file for ${deviceName}: ${(error as Error).message}`);

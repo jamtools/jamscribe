@@ -4,24 +4,27 @@
   "main": "index.js",
   "scripts": {
     "dev": "sb dev src/index.tsx",
-    "build": "sb build src/index.tsx"
+    "build": "sb build src/index.tsx",
+    "check-types": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@jamtools/core": "0.15.0-rc20",
-    "@springboardjs/data-storage": "0.15.0-rc20",
-    "@springboardjs/platforms-browser": "0.15.0-rc20",
-    "@springboardjs/platforms-node": "0.15.0-rc20",
+    "@jamtools/core": "0.0.1-dev-midipoller-4",
+    "@springboardjs/data-storage": "0.0.1-dev-midipoller-4",
+    "@springboardjs/platforms-browser": "0.0.1-dev-midipoller-4",
+    "@springboardjs/platforms-node": "0.0.1-dev-midipoller-4",
     "hono": "4.7.6",
+    "mic": "^2.1.2",
     "react": "^19.1.0",
-    "springboard": "0.15.0-rc20",
-    "springboard-cli": "0.15.0-rc20",
-    "springboard-server": "0.15.0-rc20"
+    "springboard": "0.0.1-dev-midipoller-4",
+    "springboard-cli": "0.0.1-dev-midipoller-4",
+    "springboard-server": "0.0.1-dev-midipoller-4"
   },
   "devDependencies": {
+    "@types/node": "^24.0.14",
     "@types/react": "^19.1.2"
   }
 }
