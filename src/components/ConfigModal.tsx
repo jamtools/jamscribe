@@ -11,9 +11,6 @@ type ConfigModalProps = {
     draftUploaderUrl: string;
     onDraftUploaderUrlChange: (newUrl: string) => void;
     submitUploaderUrlChange: () => void;
-    draftSoundFontPath: string;
-    onDraftSoundFontPathChange: (newPath: string) => void;
-    submitSoundFontPathChange: () => void;
 };
 
 export function asModal<P extends { isOpen: boolean; onClose: () => void }>(
@@ -54,9 +51,6 @@ function ConfigModalBase({
     draftUploaderUrl,
     onDraftUploaderUrlChange,
     submitUploaderUrlChange,
-    draftSoundFontPath,
-    onDraftSoundFontPathChange,
-    submitSoundFontPathChange
 }: ConfigModalProps) {
     return (
         <div>
@@ -98,23 +92,6 @@ function ConfigModalBase({
                         URL endpoint for uploading recorded files (leave empty to disable uploads)
                     </p>
                 </div>
-
-                <div className="form-group">
-                    <label className="form-label" htmlFor="soundfont-path">
-                        SoundFont Path
-                    </label>
-                    <input
-                        id="soundfont-path"
-                        type='text'
-                        className='form-input'
-                        value={draftSoundFontPath}
-                        onChange={(e) => onDraftSoundFontPathChange(e.target.value)}
-                        placeholder="/path/to/soundfont.sf2"
-                    />
-                    <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
-                        Path to SoundFont file (.sf2) for MIDI-to-audio conversion using FluidSynth (leave empty to disable audio conversion)
-                    </p>
-                </div>
             </div>
             <div className="modal-footer">
                 <button
@@ -130,7 +107,6 @@ function ConfigModalBase({
                     onClick={() => {
                         submitInactivityTimeLimitChange();
                         submitUploaderUrlChange();
-                        submitSoundFontPathChange();
                         onClose();
                     }}
                 >
