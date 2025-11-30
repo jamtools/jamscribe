@@ -29,6 +29,7 @@ export type FileSaver = {
 export type RecordingConfig = {
     inactivityTimeLimitSeconds: number;
     uploaderUrl: string;
+    soundFontPath: string;
 }
 
 export class MidiRecorderImpl {

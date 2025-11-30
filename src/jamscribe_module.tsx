@@ -10,6 +10,7 @@ import type {FileSaver, RecordingConfig} from './services/recorder';
 
 // @platform "node"
 import {uploadFile, uploadFileFromPath} from './services/upload_service';
+import {convertMidiToAudio, isFluidSynthAvailable} from './services/fluidsynth_service';
 // @platform end
 
 let fileSaver: FileSaver | undefined;
@@ -42,6 +43,7 @@ type PendingUpload = {
 const initialRecordingConfig: RecordingConfig = {
     inactivityTimeLimitSeconds: 60,
     uploaderUrl: '',
+    soundFontPath: '',
 };
 
 springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
@@ -54,6 +56,17 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     const pendingUploads = await moduleAPI.statesAPI.createPersistentState<PendingUpload[]>('pendingUploads', []);
 
     // @platform "node"
+    // Check FluidSynth availability on startup
+    let fluidSynthAvailable = false;
+    isFluidSynthAvailable().then(available => {
+        fluidSynthAvailable = available;
+        if (available) {
+            console.log('FluidSynth is available for MIDI-to-audio conversion');
+        } else {
+            console.log('FluidSynth not found - audio conversion will be skipped');
+        }
+    });
+
     fileSaver = {
         writeFile: async (fileName, buffer) => {
             if (!fs.existsSync('./midi_files')) {
@@ -63,10 +76,36 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
             const filePath = `./midi_files/${fileName}`;
             await fs.promises.writeFile(filePath, buffer);
 
+            const config = recordingConfig.getState();
+            const uploaderUrl = config.uploaderUrl;
+
+            // Try to convert MIDI to audio using FluidSynth
+            let audioFilePath: string | undefined;
+            let audioBuffer: Buffer | undefined;
+
+            if (fluidSynthAvailable && config.soundFontPath) {
+                const conversionResult = await convertMidiToAudio(filePath, {
+                    soundFontPath: config.soundFontPath,
+                });
+
+                if (conversionResult.success && conversionResult.audioFilePath) {
+                    audioFilePath = conversionResult.audioFilePath;
+                    audioBuffer = await fs.promises.readFile(audioFilePath);
+                    console.log(`Converted MIDI to audio: ${audioFilePath}`);
+                } else {
+                    console.error('MIDI to audio conversion failed:', conversionResult.error);
+                }
+            } else if (!fluidSynthAvailable) {
+                console.log('Skipping audio conversion: FluidSynth not available');
+            } else if (!config.soundFontPath) {
+                console.log('Skipping audio conversion: No SoundFont configured');
+            }
+
+            // Upload MIDI file
             try {
-                await uploadFile(fileName, 'audio/midi', buffer, recordingConfig.getState().uploaderUrl);
+                await uploadFile(fileName, 'audio/midi', buffer, uploaderUrl);
             } catch (error) {
-                console.error('Upload failed, queuing for retry:', error);
+                console.error('MIDI upload failed, queuing for retry:', error);
 
                 // Add to pending uploads queue
                 const uploadId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
@@ -82,6 +121,30 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
                         error: error instanceof Error ? error.message : String(error),
                     },
                 ]);
+            }
+
+            // Upload audio file if conversion was successful
+            if (audioFilePath && audioBuffer) {
+                const audioFileName = fileName.replace('.mid', '.wav');
+                try {
+                    await uploadFile(audioFileName, 'audio/wav', audioBuffer, uploaderUrl);
+                } catch (error) {
+                    console.error('Audio upload failed, queuing for retry:', error);
+
+                    const uploadId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+                    pendingUploads.setState(uploads => [
+                        ...uploads,
+                        {
+                            id: uploadId,
+                            fileName: audioFileName,
+                            filePath: audioFilePath,
+                            contentType: 'audio/wav',
+                            attempts: 1,
+                            lastAttemptTime: Date.now(),
+                            error: error instanceof Error ? error.message : String(error),
+                        },
+                    ]);
+                }
             }
         },
     };
@@ -170,6 +233,12 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
         submitUploaderUrl: async () => {
             recordingConfig.setState(c => ({...c, uploaderUrl: draftRecordingConfig.getState().uploaderUrl}));
         },
+        changeDraftSoundFontPath: async ({path}: {path: string}) => {
+            draftRecordingConfig.setState(c => ({...c, soundFontPath: path}));
+        },
+        submitSoundFontPath: async () => {
+            recordingConfig.setState(c => ({...c, soundFontPath: draftRecordingConfig.getState().soundFontPath}));
+        },
     });
 
     moduleAPI.registerRoute('/', {}, () => (
@@ -185,6 +254,10 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
             draftUploaderUrl={draftRecordingConfig.useState().uploaderUrl}
             onDraftUploaderUrlChange={(url: string) => actions.changeDraftUploaderUrl({url})}
             submitUploaderUrlChange={() => actions.submitUploaderUrl()}
+
+            draftSoundFontPath={draftRecordingConfig.useState().soundFontPath}
+            onDraftSoundFontPathChange={(path: string) => actions.changeDraftSoundFontPath({path})}
+            submitSoundFontPathChange={() => actions.submitSoundFontPath()}
         />
     ));
 
@@ -244,6 +317,10 @@ type MainProps = {
     draftUploaderUrl: string;
     onDraftUploaderUrlChange: (newUrl: string) => void;
     submitUploaderUrlChange: () => void;
+
+    draftSoundFontPath: string;
+    onDraftSoundFontPathChange: (newPath: string) => void;
+    submitSoundFontPathChange: () => void;
 }
 
 const Main = ({
@@ -255,7 +332,10 @@ const Main = ({
     submitInactivityTimeLimitChange,
     draftUploaderUrl,
     onDraftUploaderUrlChange,
-    submitUploaderUrlChange
+    submitUploaderUrlChange,
+    draftSoundFontPath,
+    onDraftSoundFontPathChange,
+    submitSoundFontPathChange
 }: MainProps) => {
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
@@ -282,6 +362,9 @@ const Main = ({
                 draftUploaderUrl={draftUploaderUrl}
                 onDraftUploaderUrlChange={onDraftUploaderUrlChange}
                 submitUploaderUrlChange={submitUploaderUrlChange}
+                draftSoundFontPath={draftSoundFontPath}
+                onDraftSoundFontPathChange={onDraftSoundFontPathChange}
+                submitSoundFontPathChange={submitSoundFontPathChange}
             />
 
             <div className="main-grid">
