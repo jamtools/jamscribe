@@ -7,9 +7,11 @@ import '@jamtools/core/modules/io/io_module';
 import 'springboard/modules/files/files_module';
 
 import type {FileSaver, RecordingConfig} from './services/recorder';
+import type {AudioDeviceInfo, AudioRecordingStatus} from './services/audio_types';
 
 // @platform "node"
 import {uploadFile, uploadFileFromPath} from './services/upload_service';
+import {LinuxAudioRecorder, listAlsaCaptureDevices} from './services/linux_audio_recorder';
 // @platform end
 
 let fileSaver: FileSaver | undefined;
@@ -42,6 +44,14 @@ type PendingUpload = {
 const initialRecordingConfig: RecordingConfig = {
     inactivityTimeLimitSeconds: 60,
     uploaderUrl: '',
+    audio: {
+        enabled: false,
+        deviceId: 'default',
+        deviceLabel: 'Default ALSA input',
+        channel: 1,
+        channelCount: 2,
+        sampleRate: 44100,
+    },
 };
 
 springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
@@ -52,36 +62,53 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     const recordingConfig = await moduleAPI.statesAPI.createPersistentState('recordingConfig', initialRecordingConfig);
     const draftRecordingConfig = await moduleAPI.statesAPI.createSharedState('draftRecordingConfig', recordingConfig.getState());
     const pendingUploads = await moduleAPI.statesAPI.createPersistentState<PendingUpload[]>('pendingUploads', []);
+    const audioInputDevices = await moduleAPI.statesAPI.createSharedState<AudioDeviceInfo[]>('audioInputDevices', []);
+    const recordingStatus = await moduleAPI.statesAPI.createSharedState<AudioRecordingStatus>('recordingStatus', {state: 'idle'});
 
     // @platform "node"
-    fileSaver = {
-        writeFile: async (fileName, buffer) => {
-            if (!fs.existsSync('./midi_files')) {
-                fs.mkdirSync('midi_files')
-            }
+    const recordingsDir = './midi_files';
+    const ensureRecordingsDir = () => {
+        if (!fs.existsSync(recordingsDir)) {
+            fs.mkdirSync(recordingsDir, {recursive: true});
+        }
+    };
 
-            const filePath = `./midi_files/${fileName}`;
+    const queuePendingUpload = (fileName: string, filePath: string, contentType: string, error: unknown) => {
+        console.error('Upload failed, queuing for retry:', error);
+
+        const uploadId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+        pendingUploads.setState(uploads => [
+            ...uploads,
+            {
+                id: uploadId,
+                fileName,
+                filePath,
+                contentType,
+                attempts: 1,
+                lastAttemptTime: Date.now(),
+                error: error instanceof Error ? error.message : String(error),
+            },
+        ]);
+    };
+
+    fileSaver = {
+        writeFile: async (fileName, contentType, buffer) => {
+            ensureRecordingsDir();
+
+            const filePath = `${recordingsDir}/${fileName}`;
             await fs.promises.writeFile(filePath, buffer);
 
             try {
-                await uploadFile(fileName, 'audio/midi', buffer, recordingConfig.getState().uploaderUrl);
+                await uploadFile(fileName, contentType, buffer, recordingConfig.getState().uploaderUrl);
             } catch (error) {
-                console.error('Upload failed, queuing for retry:', error);
-
-                // Add to pending uploads queue
-                const uploadId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-                pendingUploads.setState(uploads => [
-                    ...uploads,
-                    {
-                        id: uploadId,
-                        fileName,
-                        filePath,
-                        contentType: 'audio/midi',
-                        attempts: 1,
-                        lastAttemptTime: Date.now(),
-                        error: error instanceof Error ? error.message : String(error),
-                    },
-                ]);
+                queuePendingUpload(fileName, filePath, contentType, error);
+            }
+        },
+        uploadFileFromPath: async (fileName, contentType, filePath) => {
+            try {
+                await uploadFileFromPath(fileName, contentType, filePath, recordingConfig.getState().uploaderUrl);
+            } catch (error) {
+                queuePendingUpload(fileName, filePath, contentType, error);
             }
         },
     };
@@ -170,13 +197,50 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
         submitUploaderUrl: async () => {
             recordingConfig.setState(c => ({...c, uploaderUrl: draftRecordingConfig.getState().uploaderUrl}));
         },
+        changeDraftAudioEnabled: async ({enabled}: {enabled: boolean}) => {
+            draftRecordingConfig.setState(c => ({...c, audio: {...c.audio, enabled}}));
+        },
+        changeDraftAudioDevice: async ({deviceId, deviceLabel}: {deviceId: string; deviceLabel: string}) => {
+            draftRecordingConfig.setState(c => ({...c, audio: {...c.audio, deviceId, deviceLabel}}));
+        },
+        changeDraftAudioChannel: async ({channel}: {channel: number}) => {
+            draftRecordingConfig.setState(c => {
+                const safeChannel = Math.max(1, channel);
+                return {...c, audio: {...c.audio, channel: safeChannel, channelCount: Math.max(c.audio.channelCount, safeChannel)}};
+            });
+        },
+        changeDraftAudioChannelCount: async ({channelCount}: {channelCount: number}) => {
+            draftRecordingConfig.setState(c => ({...c, audio: {...c.audio, channelCount: Math.max(c.audio.channel, channelCount)}}));
+        },
+        changeDraftAudioSampleRate: async ({sampleRate}: {sampleRate: number}) => {
+            draftRecordingConfig.setState(c => ({...c, audio: {...c.audio, sampleRate: Math.max(8000, sampleRate)}}));
+        },
+        submitAudioRecordingConfig: async () => {
+            recordingConfig.setState(c => ({...c, audio: draftRecordingConfig.getState().audio}));
+        },
+        refreshAudioInputDevices: async () => {
+            // @platform "node"
+            const devices = await listAlsaCaptureDevices();
+            audioInputDevices.setState(devices);
+            return {devices};
+            // @platform end
+            return {devices: audioInputDevices.getState()};
+        },
     });
+
+    // @platform "node"
+    void actions.refreshAudioInputDevices().catch(error => {
+        console.error('Failed to list ALSA capture devices:', error);
+    });
+    // @platform end
 
     moduleAPI.registerRoute('/', {}, () => (
         <Main
             logs={logMessages.useState()}
             availableFiles={draftedFiles.useState()}
             recordingConfig={recordingConfig.useState()}
+            audioInputDevices={audioInputDevices.useState()}
+            recordingStatus={recordingStatus.useState()}
 
             draftInactivityTimeLimit={draftRecordingConfig.useState().inactivityTimeLimitSeconds}
             onDraftInactivityTimeLimitChange={(limit: number) => actions.changeDraftInactivityTimeLimit({limit})}
@@ -185,6 +249,15 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
             draftUploaderUrl={draftRecordingConfig.useState().uploaderUrl}
             onDraftUploaderUrlChange={(url: string) => actions.changeDraftUploaderUrl({url})}
             submitUploaderUrlChange={() => actions.submitUploaderUrl()}
+
+            draftAudioConfig={draftRecordingConfig.useState().audio}
+            onDraftAudioEnabledChange={(enabled: boolean) => actions.changeDraftAudioEnabled({enabled})}
+            onDraftAudioDeviceChange={(deviceId: string, deviceLabel: string) => actions.changeDraftAudioDevice({deviceId, deviceLabel})}
+            onDraftAudioChannelChange={(channel: number) => actions.changeDraftAudioChannel({channel})}
+            onDraftAudioChannelCountChange={(channelCount: number) => actions.changeDraftAudioChannelCount({channelCount})}
+            onDraftAudioSampleRateChange={(sampleRate: number) => actions.changeDraftAudioSampleRate({sampleRate})}
+            submitAudioRecordingConfigChange={() => actions.submitAudioRecordingConfig()}
+            refreshAudioInputDevices={() => actions.refreshAudioInputDevices()}
         />
     ));
 
@@ -196,7 +269,7 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     // default implementation of file saver
     if (!fileSaver) {
         fileSaver = {
-            writeFile: async (fileName, buffer) => {
+            writeFile: async (fileName, _contentType, buffer) => {
                 const filesModule = moduleAPI.deps.module.moduleRegistry.getModule('Files');
                 const file = new File([
                     new Blob([buffer.toString()])
@@ -221,7 +294,20 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
         log(msg);
     });
 
-    const recorder = new MidiRecorderImpl(ioModule.midiInputSubject, {log}, fileSaver, recordingConfig);
+    // @platform "node"
+    const audioRecorder = new LinuxAudioRecorder({outputDir: recordingsDir, log});
+    // @platform end
+
+    const recorder = new MidiRecorderImpl(
+        ioModule.midiInputSubject,
+        {log},
+        fileSaver,
+        recordingConfig,
+        // @platform "node"
+        audioRecorder,
+        // @platform end
+        recordingStatus,
+    );
     recorder.initialize();
 });
 
@@ -236,6 +322,8 @@ type MainProps = {
     availableFiles: DraftedFile[];
 
     recordingConfig: RecordingConfig;
+    audioInputDevices: AudioDeviceInfo[];
+    recordingStatus: AudioRecordingStatus;
 
     draftInactivityTimeLimit: number;
     onDraftInactivityTimeLimitChange: (newLimit: number) => void;
@@ -244,18 +332,37 @@ type MainProps = {
     draftUploaderUrl: string;
     onDraftUploaderUrlChange: (newUrl: string) => void;
     submitUploaderUrlChange: () => void;
+
+    draftAudioConfig: RecordingConfig['audio'];
+    onDraftAudioEnabledChange: (enabled: boolean) => void;
+    onDraftAudioDeviceChange: (deviceId: string, deviceLabel: string) => void;
+    onDraftAudioChannelChange: (channel: number) => void;
+    onDraftAudioChannelCountChange: (channelCount: number) => void;
+    onDraftAudioSampleRateChange: (sampleRate: number) => void;
+    submitAudioRecordingConfigChange: () => void;
+    refreshAudioInputDevices: () => void;
 }
 
 const Main = ({
     logs,
     availableFiles,
     recordingConfig,
+    audioInputDevices,
+    recordingStatus,
     draftInactivityTimeLimit,
     onDraftInactivityTimeLimitChange,
     submitInactivityTimeLimitChange,
     draftUploaderUrl,
     onDraftUploaderUrlChange,
-    submitUploaderUrlChange
+    submitUploaderUrlChange,
+    draftAudioConfig,
+    onDraftAudioEnabledChange,
+    onDraftAudioDeviceChange,
+    onDraftAudioChannelChange,
+    onDraftAudioChannelCountChange,
+    onDraftAudioSampleRateChange,
+    submitAudioRecordingConfigChange,
+    refreshAudioInputDevices,
 }: MainProps) => {
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
@@ -276,17 +383,28 @@ const Main = ({
                 isOpen={isConfigModalOpen}
                 onClose={() => setIsConfigModalOpen(false)}
                 recordingConfig={recordingConfig}
+                audioInputDevices={audioInputDevices}
                 draftInactivityTimeLimit={draftInactivityTimeLimit}
                 onDraftInactivityTimeLimitChange={onDraftInactivityTimeLimitChange}
                 submitInactivityTimeLimitChange={submitInactivityTimeLimitChange}
                 draftUploaderUrl={draftUploaderUrl}
                 onDraftUploaderUrlChange={onDraftUploaderUrlChange}
                 submitUploaderUrlChange={submitUploaderUrlChange}
+                draftAudioConfig={draftAudioConfig}
+                onDraftAudioEnabledChange={onDraftAudioEnabledChange}
+                onDraftAudioDeviceChange={onDraftAudioDeviceChange}
+                onDraftAudioChannelChange={onDraftAudioChannelChange}
+                onDraftAudioChannelCountChange={onDraftAudioChannelCountChange}
+                onDraftAudioSampleRateChange={onDraftAudioSampleRateChange}
+                submitAudioRecordingConfigChange={submitAudioRecordingConfigChange}
+                refreshAudioInputDevices={refreshAudioInputDevices}
             />
 
             <div className="main-grid">
                 <div>
+                    <RecordingStatusPanel status={recordingStatus} config={recordingConfig} />
                     <MidiDevices />
+                    <AudioDevices devices={audioInputDevices} config={recordingConfig} onRefresh={refreshAudioInputDevices} />
 
                     <div className="card">
                         <div className="card-header">
@@ -362,3 +480,52 @@ const Main = ({
         </div>
     );
 }
+
+const RecordingStatusPanel = ({status, config}: {status: AudioRecordingStatus; config: RecordingConfig}) => {
+    const isRecording = status.state === 'recording' || status.state === 'stopping';
+    return (
+        <div className="card">
+            <div className="card-header">
+                <h2 className="card-title">🔴 Recording Status</h2>
+                <span className={`recording-status ${isRecording ? 'active' : ''}`}>
+                    <span className="recording-indicator" />
+                    {status.state}
+                </span>
+            </div>
+            <p className="text-muted mb-0">{status.message || 'Waiting for MIDI activity...'}</p>
+            {status.activeTakeId && <p className="text-muted mb-0">Take: {status.activeTakeId}</p>}
+            {status.audioFileName && <p className="text-muted mb-0">Audio: {status.audioFileName}</p>}
+            <p className="text-muted mb-0">Audio recording is {config.audio.enabled ? 'enabled' : 'disabled'}.</p>
+        </div>
+    );
+};
+
+const AudioDevices = ({devices, config, onRefresh}: {devices: AudioDeviceInfo[]; config: RecordingConfig; onRefresh: () => void}) => {
+    return (
+        <div className="card">
+            <div className="card-header">
+                <h2 className="card-title">🎙️ Audio Input Devices</h2>
+                <button type="button" className="btn-outline" onClick={onRefresh}>Refresh</button>
+            </div>
+            <p className="text-muted">
+                Selected: {config.audio.deviceLabel || config.audio.deviceId}, channel {config.audio.channel} of {config.audio.channelCount}
+            </p>
+            {devices.length > 0 ? (
+                <ul className="device-list">
+                    {devices.map(device => (
+                        <li key={device.id} className="device-item fade-in">
+                            <span className="device-icon">🎙️</span>
+                            <span className="device-name">{device.label}</span>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <div className="empty-state">
+                    <div className="empty-state-icon">🎙️</div>
+                    <p className="text-muted mb-0">No ALSA capture devices found</p>
+                    <p className="text-muted">Install/configure ALSA devices on the Raspberry Pi, then refresh.</p>
+                </div>
+            )}
+        </div>
+    );
+};
