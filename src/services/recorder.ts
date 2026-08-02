@@ -4,6 +4,7 @@ import {Subject} from 'rxjs';
 
 import {MidiEventFull} from '@jamtools/core/modules/macro_module/macro_module_types';
 import {StateSupervisor} from 'springboard/services/states/shared_state_service';
+import type {AudioRecorder, AudioRecordingConfig, AudioRecordingStatus} from './audio_types';
 
 const sendPushNotification = (data: {title: string, data: {url: string}}) => {
 
@@ -23,21 +24,31 @@ type Logger = {
 };
 
 export type FileSaver = {
-    writeFile: (fileName: string, buffer: Buffer) => void | Promise<void>;
+    writeFile: (fileName: string, contentType: string, buffer: Buffer) => void | Promise<void>;
+    uploadFileFromPath?: (fileName: string, contentType: string, filePath: string) => void | Promise<void>;
 }
 
 export type RecordingConfig = {
     inactivityTimeLimitSeconds: number;
     uploaderUrl: string;
+    audio: AudioRecordingConfig;
 }
 
 export class MidiRecorderImpl {
     private deviceActivity: {[deviceName: string]: boolean} = {};
     private deviceTimeouts: {[deviceName: string]: NodeJS.Timeout | undefined} = {};
     private recordedEvents: {[deviceName: string]: LoggedMidiEvent[]} = {};
+    private currentTakeId: string | null = null;
     // private INACTIVITY_LIMIT = FIVE_SECONDS;
 
-    constructor(private onInputEvent: Subject<MidiEventFull>, private logger: Logger, private fileSaver: FileSaver, private recordingConfigState: StateSupervisor<RecordingConfig>) { }
+    constructor(
+        private onInputEvent: Subject<MidiEventFull>,
+        private logger: Logger,
+        private fileSaver: FileSaver,
+        private recordingConfigState: StateSupervisor<RecordingConfig>,
+        private audioRecorder?: AudioRecorder,
+        private recordingStatusState?: StateSupervisor<AudioRecordingStatus>,
+    ) { }
 
     private formatDeviceName(deviceName: string): string {
         // Truncate long device names and remove common suffixes
@@ -51,6 +62,14 @@ export class MidiRecorderImpl {
         return fileName.length > 30 ? '...' + fileName.substring(fileName.length - 27) : fileName;
     }
 
+    private hasActiveRecordedEvents = (): boolean => {
+        return Object.values(this.recordedEvents).some(events => events.length > 0);
+    };
+
+    private generateTakeId = (): string => {
+        return new Date().toISOString().replace(/[:.]/g, '-');
+    };
+
     public initialize = () => {
         this.onInputEvent.subscribe(this.handleMidiEvent);
     };
@@ -59,8 +78,13 @@ export class MidiRecorderImpl {
         const deviceName = midiEventFull.deviceInfo.name;
         const event = midiEventFull.event;
         const time = performance.now();
+        const shouldStartTake = !this.hasActiveRecordedEvents();
 
         this.deviceActivity[deviceName] = true;
+
+        if (shouldStartTake) {
+            this.startTake();
+        }
 
         // Store the event in memory
         if (!this.recordedEvents[deviceName]?.length) {
@@ -73,15 +97,57 @@ export class MidiRecorderImpl {
         this.resetDeviceInactivityTimerForDevice(deviceName);
     };
 
+    private startTake = () => {
+        const takeId = this.generateTakeId();
+        this.currentTakeId = takeId;
+        this.recordingStatusState?.setState({state: 'recording', activeTakeId: takeId, message: 'Recording MIDI and audio'});
+
+        const audioConfig = this.recordingConfigState.getState().audio;
+        if (!audioConfig.enabled || !this.audioRecorder) {
+            return;
+        }
+
+        void this.audioRecorder.start({takeId, config: audioConfig}).catch(error => {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.log(`Audio recording failed to start: ${message}`);
+            this.recordingStatusState?.setState({state: 'error', activeTakeId: takeId, message});
+        });
+    };
+
     // Stop recording and save all recorded MIDI events to a file
-    private stopRecordingForAllDevices = () => {
+    private stopRecordingForAllDevices = async () => {
+        const takeId = this.currentTakeId;
         this.logger.log('Stopping recordings due to inactivity');
+        this.recordingStatusState?.setState({state: 'stopping', activeTakeId: takeId ?? undefined, message: 'Saving recordings'});
         Object.keys(this.recordedEvents).forEach((deviceName) => {
-            this.saveRecordedMidiToFile(deviceName);
+            this.saveRecordedMidiToFile(deviceName, takeId ?? this.generateTakeId());
 
             // Clear events after saving
             this.recordedEvents[deviceName] = [];
         });
+
+        if (this.audioRecorder) {
+            try {
+                const audioFile = await this.audioRecorder.stop();
+                if (audioFile) {
+                    if (!this.fileSaver.uploadFileFromPath) {
+                        throw new Error('audio file upload is not available in this runtime');
+                    }
+                    await this.fileSaver.uploadFileFromPath(audioFile.fileName, audioFile.contentType, audioFile.filePath);
+                    this.recordingStatusState?.setState({state: 'idle', message: 'Audio and MIDI saved', audioFileName: audioFile.fileName});
+                } else {
+                    this.recordingStatusState?.setState({state: 'idle', message: 'MIDI saved'});
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                this.logger.log(`Error while saving audio recording: ${message}`);
+                this.recordingStatusState?.setState({state: 'error', activeTakeId: takeId ?? undefined, message});
+            }
+        } else {
+            this.recordingStatusState?.setState({state: 'idle', message: 'MIDI saved'});
+        }
+
+        this.currentTakeId = null;
     };
 
     private getInactivityLimit = () => {
@@ -99,18 +165,17 @@ export class MidiRecorderImpl {
 
             const allInactive = Object.values(this.deviceActivity).every(isActive => !isActive);
             if (allInactive) {
-                this.stopRecordingForAllDevices();
+                void this.stopRecordingForAllDevices();
             }
         }, this.getInactivityLimit());
     };
 
-    private generateFilename = (deviceName: string): string => {
-        const timestamp = new Date().toISOString();
-        const filename = `${deviceName}_${timestamp}_recording.mid`;
+    private generateFilename = (deviceName: string, takeId: string): string => {
+        const filename = `${takeId}_${deviceName}_recording.mid`;
         return filename;
     };
 
-    private saveRecordedMidiToFile = (deviceName: string) => {
+    private saveRecordedMidiToFile = (deviceName: string, takeId: string) => {
         const midiEvents = this.recordedEvents[deviceName];
         if (!midiEvents || midiEvents.length === 0) {
             this.logger.log(`No events recorded for device: ${deviceName}`);
@@ -139,12 +204,12 @@ export class MidiRecorderImpl {
             }
         });
 
-        const midiFilePath = this.generateFilename(deviceName);
+        const midiFilePath = this.generateFilename(deviceName, takeId);
 
         // Write the MIDI file to disk
         try {
             const outputBuffer = Buffer.from(writeMidi(midiData));
-            this.fileSaver.writeFile(midiFilePath, outputBuffer);
+            this.fileSaver.writeFile(midiFilePath, 'audio/midi', outputBuffer);
             this.logger.log(`MIDI saved: ${this.formatFilePath(midiFilePath)}`);
             this.notifyUserOfNewRecordedSession();
         } catch (error) {
