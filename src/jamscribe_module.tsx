@@ -294,8 +294,9 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
         log(msg);
     });
 
+    let audioRecorder;
     // @platform "node"
-    const audioRecorder = new LinuxAudioRecorder({outputDir: recordingsDir, log});
+    audioRecorder = new LinuxAudioRecorder({outputDir: recordingsDir, log});
     // @platform end
 
     const recorder = new MidiRecorderImpl(
@@ -303,9 +304,7 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
         {log},
         fileSaver,
         recordingConfig,
-        // @platform "node"
         audioRecorder,
-        // @platform end
         recordingStatus,
     );
     recorder.initialize();

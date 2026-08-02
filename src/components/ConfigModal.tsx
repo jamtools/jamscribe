@@ -1,16 +1,26 @@
 import React, { useRef, useEffect } from 'react';
 import { RecordingConfig } from '../services/recorder';
+import type {AudioDeviceInfo} from '../services/audio_types';
 
 type ConfigModalProps = {
     isOpen: boolean;
     onClose: () => void;
     recordingConfig: RecordingConfig;
+    audioInputDevices: AudioDeviceInfo[];
     draftInactivityTimeLimit: number;
     onDraftInactivityTimeLimitChange: (newLimit: number) => void;
     submitInactivityTimeLimitChange: () => void;
     draftUploaderUrl: string;
     onDraftUploaderUrlChange: (newUrl: string) => void;
     submitUploaderUrlChange: () => void;
+    draftAudioConfig: RecordingConfig['audio'];
+    onDraftAudioEnabledChange: (enabled: boolean) => void;
+    onDraftAudioDeviceChange: (deviceId: string, deviceLabel: string) => void;
+    onDraftAudioChannelChange: (channel: number) => void;
+    onDraftAudioChannelCountChange: (channelCount: number) => void;
+    onDraftAudioSampleRateChange: (sampleRate: number) => void;
+    submitAudioRecordingConfigChange: () => void;
+    refreshAudioInputDevices: () => void;
 };
 
 export function asModal<P extends { isOpen: boolean; onClose: () => void }>(
@@ -44,13 +54,21 @@ export function asModal<P extends { isOpen: boolean; onClose: () => void }>(
 
 function ConfigModalBase({
     onClose,
-    recordingConfig,
+    audioInputDevices,
     draftInactivityTimeLimit,
     onDraftInactivityTimeLimitChange,
     submitInactivityTimeLimitChange,
     draftUploaderUrl,
     onDraftUploaderUrlChange,
-    submitUploaderUrlChange
+    submitUploaderUrlChange,
+    draftAudioConfig,
+    onDraftAudioEnabledChange,
+    onDraftAudioDeviceChange,
+    onDraftAudioChannelChange,
+    onDraftAudioChannelCountChange,
+    onDraftAudioSampleRateChange,
+    submitAudioRecordingConfigChange,
+    refreshAudioInputDevices,
 }: ConfigModalProps) {
     return (
         <div>
@@ -92,6 +110,99 @@ function ConfigModalBase({
                         URL endpoint for uploading recorded files (leave empty to disable uploads)
                     </p>
                 </div>
+
+                <div className="form-group">
+                    <label className="form-label">
+                        <input
+                            type="checkbox"
+                            checked={draftAudioConfig.enabled}
+                            onChange={(event) => onDraftAudioEnabledChange(event.target.checked)}
+                            style={{marginRight: '0.5rem'}}
+                        />
+                        Record audio with each MIDI session
+                    </label>
+                    <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
+                        On Linux/Raspberry Pi, JamScribe records WAV audio with arecord piped through sox for channel selection.
+                    </p>
+                </div>
+
+                <div className="form-group">
+                    <div style={{display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center'}}>
+                        <label className="form-label" htmlFor="audio-device">
+                            Audio Device
+                        </label>
+                        <button type="button" className="btn-outline" onClick={refreshAudioInputDevices}>Refresh devices</button>
+                    </div>
+                    <select
+                        id="audio-device"
+                        className="form-input"
+                        value={draftAudioConfig.deviceId}
+                        onChange={(event) => {
+                            const option = event.currentTarget.selectedOptions[0];
+                            onDraftAudioDeviceChange(event.target.value, option?.textContent || event.target.value);
+                        }}
+                    >
+                        <option value="default">Default ALSA input</option>
+                        {audioInputDevices.map(device => (
+                            <option key={device.id} value={device.id}>{device.label}</option>
+                        ))}
+                    </select>
+                    <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
+                        Devices come from <code>arecord -l</code>. Use the default device if ALSA is already configured.
+                    </p>
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label" htmlFor="audio-channel">
+                        Channel to Record
+                    </label>
+                    <input
+                        id="audio-channel"
+                        type="number"
+                        className="form-input"
+                        value={draftAudioConfig.channel}
+                        onChange={(event) => onDraftAudioChannelChange(parseInt(event.target.value) || 1)}
+                        min={1}
+                        max={32}
+                    />
+                    <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
+                        1-based source channel to remix into the saved mono WAV file.
+                    </p>
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label" htmlFor="audio-channel-count">
+                        Source Channel Count
+                    </label>
+                    <input
+                        id="audio-channel-count"
+                        type="number"
+                        className="form-input"
+                        value={draftAudioConfig.channelCount}
+                        onChange={(event) => onDraftAudioChannelCountChange(parseInt(event.target.value) || 1)}
+                        min={draftAudioConfig.channel}
+                        max={32}
+                    />
+                    <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
+                        Number of channels to request from arecord. This must be at least the selected channel.
+                    </p>
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label" htmlFor="audio-sample-rate">
+                        Audio Sample Rate
+                    </label>
+                    <input
+                        id="audio-sample-rate"
+                        type="number"
+                        className="form-input"
+                        value={draftAudioConfig.sampleRate}
+                        onChange={(event) => onDraftAudioSampleRateChange(parseInt(event.target.value) || 44100)}
+                        min={8000}
+                        max={192000}
+                        step={1000}
+                    />
+                </div>
             </div>
             <div className="modal-footer">
                 <button
@@ -107,6 +218,7 @@ function ConfigModalBase({
                     onClick={() => {
                         submitInactivityTimeLimitChange();
                         submitUploaderUrlChange();
+                        submitAudioRecordingConfigChange();
                         onClose();
                     }}
                 >
