@@ -1,10 +1,36 @@
-import React from 'react';
-import '@jamtools/core/modules/io/io_module';
+import React, {useEffect} from 'react';
+import '../midi_devices_module';
 import {useModule} from '../hooks/use_module';
 
+const MIDI_DEVICE_REFRESH_INTERVAL_MS = 10_000;
+
 export const MidiDevices: React.FC = () => {
-    const ioModule = useModule('io');
-    const midiDevices = ioModule.midiDeviceState.useState().midiInputDevices;
+    const midiDevicesModule = useModule('MidiDevices');
+    const midiDevices = midiDevicesModule.midiDevicesSnapshot.useState().midiInputDevices;
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const refreshMidiInputDevices = async () => {
+            try {
+                await midiDevicesModule.actions.fetchMidiInputDevices();
+            } catch (error) {
+                if (isMounted) {
+                    console.error('Failed to refresh MIDI input devices', error);
+                }
+            }
+        };
+
+        void refreshMidiInputDevices();
+        const interval = window.setInterval(() => {
+            void refreshMidiInputDevices();
+        }, MIDI_DEVICE_REFRESH_INTERVAL_MS);
+
+        return () => {
+            isMounted = false;
+            window.clearInterval(interval);
+        };
+    }, [midiDevicesModule]);
 
     return (
         <div className="card midi-devices-card">

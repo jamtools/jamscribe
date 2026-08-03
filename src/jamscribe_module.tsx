@@ -5,6 +5,7 @@ import springboard from 'springboard';
 
 import '@jamtools/core/modules/io/io_module';
 import 'springboard/modules/files/files_module';
+import './midi_devices_module';
 
 import type {FileSaver} from './services/recorder';
 import type {RecordingConfig} from './services/recording_config';
