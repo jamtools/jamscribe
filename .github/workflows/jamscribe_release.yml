@@ -3,18 +3,18 @@ name: JamScribe release
 on:
   push:
     branches:
-      - "main"
+      - "vk/067b-jamscribe"
   workflow_dispatch:
     inputs:
       ref:
         description: 'Ref to use in application repo'
         required: false
-        default: 'main'
+        default: 'vk/067b-jamscribe'
   # repository_dispatch:
   #   types: [ build-remote ]
 
 env:
-  TARGET_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref != '' && github.event.inputs.ref || github.event_name == 'repository_dispatch' && github.event.client_payload.sha != '' && github.event.client_payload.sha || 'main' }}
+  TARGET_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref != '' && github.event.inputs.ref || github.event_name == 'repository_dispatch' && github.event.client_payload.sha != '' && github.event.client_payload.sha || github.ref_name }}
 
 jobs:
   release-jamscribe:
@@ -56,7 +56,7 @@ jobs:
               map(select(.tagName | startswith($prefix)))
               | sort_by(.publishedAt)
               | last
-              | if . == null then "none" else .tagName[1:] end
+              | if . == null then "none" else .tagName end
             ')
         echo "latest_tag=$latest" >> $GITHUB_OUTPUT
 
