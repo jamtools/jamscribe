@@ -15,7 +15,7 @@ import {initialAudioRecordingConfig} from './services/audio_types';
 
 // @platform "node"
 import {uploadFile, uploadFileFromPath} from './services/upload_service';
-import {LinuxAudioRecorder, listAlsaCaptureDevices, testAlsaCaptureDevice} from './services/linux_audio_recorder';
+import {LinuxAudioRecorder, listAlsaCaptureDevices} from './services/linux_audio_recorder';
 // @platform end
 
 let fileSaver: FileSaver | undefined;
@@ -243,11 +243,37 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
 
             try {
                 // @platform "node"
-                await testAlsaCaptureDevice(audioConfig, {outputDir: recordingsDir, log});
+                const uploaderUrl = draftRecordingConfig.getState().uploaderUrl;
+                if (!uploaderUrl) {
+                    throw new Error('Uploader URL is required for the full audio test');
+                }
+
+                const testRecorder = new LinuxAudioRecorder({outputDir: recordingsDir, log});
+                const testTakeId = `audio-test-${new Date().toISOString()}`;
+                let audioFilePath: string | undefined;
+                let audioFileName: string | undefined;
+                try {
+                    await testRecorder.start({takeId: testTakeId, config: audioConfig});
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    const audioFile = await testRecorder.stop();
+                    if (!audioFile) {
+                        throw new Error('Audio test did not produce a file');
+                    }
+                    audioFilePath = audioFile.filePath;
+                    audioFileName = audioFile.fileName;
+                    log(`Uploading audio test file ${audioFile.fileName}`);
+                    await uploadFileFromPath(audioFile.fileName, audioFile.contentType, audioFile.filePath, uploaderUrl);
+                    log(`Audio test upload succeeded: ${audioFile.fileName}`);
+                } finally {
+                    if (audioFilePath) {
+                        await fs.promises.rm(audioFilePath, {force: true});
+                        log(`Deleted temporary audio test file ${audioFileName ?? audioFilePath}`);
+                    }
+                }
                 // @platform end
                 recordingStatus.setState({
                     state: 'idle',
-                    message: `Audio test succeeded for ${audioConfig.deviceLabel || audioConfig.deviceId} channel ${audioConfig.channel}.`,
+                    message: `Audio test recorded and uploaded ${audioConfig.deviceLabel || audioConfig.deviceId} channel ${audioConfig.channel}.`,
                 });
                 return {ok: true};
             } catch (error) {

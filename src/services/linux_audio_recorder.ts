@@ -197,12 +197,13 @@ const terminateProcess = (
 export const testAlsaCaptureDevice = async (
     config: AudioRecordingConfig,
     options: AudioCaptureSmokeTestOptions = {},
-): Promise<void> => {
+): Promise<RecordedAudioFile> => {
     const outputDir = options.outputDir ?? DEFAULT_AUDIO_OUTPUT_DIR;
     await fs.promises.mkdir(outputDir, {recursive: true});
 
     const {channel, channelCount, sampleRate, deviceId} = normalizeAudioSettings(config);
-    const filePath = path.join(outputDir, `.jamscribe_audio_test_${Date.now()}_${Math.random().toString(36).slice(2)}.wav`);
+    const fileName = generateAudioFileName(`audio-test-${new Date().toISOString()}`, channel);
+    const filePath = path.join(outputDir, fileName);
     const durationSeconds = options.durationSeconds ?? 3;
     const arecordPath = options.arecordPath ?? 'arecord';
     const soxPath = options.soxPath ?? 'sox';
@@ -234,11 +235,16 @@ export const testAlsaCaptureDevice = async (
         if (stats.size <= 44) {
             throw new Error('Audio test completed, but the WAV file did not contain audio samples');
         }
-        options.log?.('Audio input test succeeded');
+        options.log?.(`Audio input test succeeded: ${fileName}`);
+
+        return {
+            fileName,
+            filePath,
+            contentType: 'audio/wav',
+        };
     } finally {
         terminateProcess(arecord, 'arecord', options.log);
         terminateProcess(sox, 'sox', options.log);
-        await fs.promises.rm(filePath, {force: true});
     }
 };
 

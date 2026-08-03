@@ -223,13 +223,13 @@ function ConfigModalBase({
                         className="btn-outline"
                         onClick={testDraftAudioInput}
                         disabled={!draftAudioConfig.enabled}
-                        title={draftAudioConfig.enabled ? 'Record a short temporary WAV with the current draft settings' : 'Enable "Record audio with each MIDI session" before testing audio input'}
+                        title={draftAudioConfig.enabled ? 'Record, stop, and upload a short WAV with the current draft settings' : 'Enable "Record audio with each MIDI session" before testing audio input'}
                     >
                         Test audio input
                     </button>
                     <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
                         {draftAudioConfig.enabled
-                            ? 'Records a short temporary WAV using the current draft settings, then deletes it. Result appears in Recording Status.'
+                            ? 'Records a short temporary WAV using the real start/stop path, uploads it to the configured Uploader URL, then deletes the local temp file. Result appears in Recording Status.'
                             : 'Enable “Record audio with each MIDI session” above to test the selected audio input.'}
                     </p>
                 </div>
