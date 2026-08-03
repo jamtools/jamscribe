@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { RecordingConfig } from '../services/recorder';
 import type {AudioDeviceInfo} from '../services/audio_types';
+import {BUILD_COMMIT_HASH} from '../build_info';
 
 type ConfigModalProps = {
     isOpen: boolean;
@@ -80,6 +81,9 @@ function ConfigModalBase({
         <div>
             <div className="modal-header">
                 <h2 className="modal-title">⚙️ Recording Settings</h2>
+                <p className="text-muted" style={{fontSize: '0.75rem', margin: '0.25rem 0 0'}}>
+                    Build commit: <code>{BUILD_COMMIT_HASH}</code>
+                </p>
             </div>
             <div className="modal-body">
                 <div className="form-group">

@@ -35,6 +35,11 @@ jobs:
         path: .github/composite-actions
         ref: dev
 
+    - name: Generate build info
+      run: |
+        short_sha="$(git rev-parse --short=12 HEAD)"
+        printf "export const BUILD_COMMIT_HASH = '%s';\n" "$short_sha" > src/build_info.ts
+
     - name: Run build composite action
       uses: ./.github/composite-actions/.github/actions/build_app
       with:
