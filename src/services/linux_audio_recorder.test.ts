@@ -50,7 +50,6 @@ test('buildArecordArgs records bounded raw PCM with selected ALSA device setting
         channelCount: 2,
         durationSeconds: 3,
     }), [
-        '-q',
         '-D', 'plughw:1,0',
         '-f', 'S16_LE',
         '-r', '48000',
@@ -67,7 +66,6 @@ test('buildSoxArgs remixes one selected channel into a mono WAV', () => {
         selectedChannel: 2,
         outputFilePath: '/tmp/test.wav',
     }), [
-        '-q',
         '-t', 'raw',
         '-b', '16',
         '-e', 'signed-integer',

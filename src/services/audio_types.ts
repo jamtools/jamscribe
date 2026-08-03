@@ -14,7 +14,7 @@ export type AudioRecordingConfig = {
 };
 
 export const initialAudioRecordingConfig: AudioRecordingConfig = {
-    enabled: false,
+    enabled: true,
     deviceId: 'default',
     deviceLabel: 'Default ALSA input',
     channel: 1,

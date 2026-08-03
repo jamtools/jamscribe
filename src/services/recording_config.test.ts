@@ -13,7 +13,7 @@ test('initialRecordingConfig contains only general recording settings', () => {
 
 test('initialAudioRecordingConfig contains the separate audio defaults', () => {
     assert.deepEqual(initialAudioRecordingConfig, {
-        enabled: false,
+        enabled: true,
         deviceId: 'default',
         deviceLabel: 'Default ALSA input',
         channel: 1,

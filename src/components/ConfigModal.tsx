@@ -130,7 +130,7 @@ function ConfigModalBase({
                         Record audio with each MIDI session
                     </label>
                     <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
-                        On Linux/Raspberry Pi, JamScribe records WAV audio with arecord piped through sox for channel selection.
+                        On Linux/Raspberry Pi, JamScribe records WAV audio with arecord piped through sox for channel selection. This must be enabled to test or record audio.
                     </p>
                 </div>
 
@@ -223,11 +223,14 @@ function ConfigModalBase({
                         className="btn-outline"
                         onClick={testDraftAudioInput}
                         disabled={!draftAudioConfig.enabled}
+                        title={draftAudioConfig.enabled ? 'Record a short temporary WAV with the current draft settings' : 'Enable "Record audio with each MIDI session" before testing audio input'}
                     >
                         Test audio input
                     </button>
                     <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
-                        Records a short temporary WAV using the current draft settings, then deletes it. Result appears in Recording Status.
+                        {draftAudioConfig.enabled
+                            ? 'Records a short temporary WAV using the current draft settings, then deletes it. Result appears in Recording Status.'
+                            : 'Enable “Record audio with each MIDI session” above to test the selected audio input.'}
                     </p>
                 </div>
             </div>

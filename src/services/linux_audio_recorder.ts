@@ -94,7 +94,6 @@ export const listAlsaCaptureDevices = async (arecordPath = 'arecord'): Promise<A
 
 export const buildArecordArgs = ({deviceId, sampleRate, channelCount, durationSeconds}: AudioProcessArgs): string[] => {
     const args = [
-        '-q',
         '-D', deviceId,
         '-f', 'S16_LE',
         '-r', String(sampleRate),
@@ -110,7 +109,6 @@ export const buildArecordArgs = ({deviceId, sampleRate, channelCount, durationSe
 };
 
 export const buildSoxArgs = ({sampleRate, channelCount, selectedChannel, outputFilePath}: SoxProcessArgs): string[] => [
-    '-q',
     '-t', 'raw',
     '-b', '16',
     '-e', 'signed-integer',
@@ -123,19 +121,37 @@ export const buildSoxArgs = ({sampleRate, channelCount, selectedChannel, outputF
     String(selectedChannel),
 ];
 
-const waitForProcessClose = (process: ChildProcessWithoutNullStreams, label: string): Promise<void> => new Promise((resolve, reject) => {
+const formatCommand = (command: string, args: string[]): string => [
+    command,
+    ...args.map(arg => /[\s"']/.test(arg) ? JSON.stringify(arg) : arg),
+].join(' ');
+
+const waitForProcessClose = (
+    process: ChildProcessWithoutNullStreams,
+    label: string,
+    log?: (msg: string) => void,
+): Promise<void> => new Promise((resolve, reject) => {
     let stderr = '';
 
     process.stderr.on('data', chunk => {
-        stderr += chunk.toString();
+        const text = chunk.toString();
+        stderr += text;
+        const trimmed = text.trim();
+        if (trimmed) {
+            log?.(`${label} stderr: ${trimmed}`);
+        }
     });
-    process.on('error', reject);
-    process.on('close', code => {
+    process.on('error', error => {
+        log?.(`${label} process error: ${error.message}`);
+        reject(error);
+    });
+    process.on('close', (code, signal) => {
+        log?.(`${label} closed with code ${code ?? 'null'} signal ${signal ?? 'null'}`);
         if (code === 0 || code === null) {
             resolve();
             return;
         }
-        reject(new Error(`${label} exited with code ${code}${stderr ? `: ${stderr}` : ''}`));
+        reject(new Error(`${label} exited with code ${code} signal ${signal ?? 'null'}${stderr ? `: ${stderr.trim()}` : ''}`));
     });
 });
 
@@ -152,11 +168,12 @@ const normalizeAudioSettings = (config: AudioRecordingConfig) => {
 const pipeArecordToSox = (
     arecord: ChildProcessWithoutNullStreams,
     sox: ChildProcessWithoutNullStreams,
+    log?: (msg: string) => void,
 ): Promise<void> => {
     arecord.stdout.pipe(sox.stdin);
     const settled = Promise.all([
-        waitForProcessClose(arecord, 'arecord'),
-        waitForProcessClose(sox, 'sox'),
+        waitForProcessClose(arecord, 'arecord', log),
+        waitForProcessClose(sox, 'sox', log),
     ]).then(() => undefined);
 
     // The caller still awaits this promise. The extra catch prevents an early
@@ -166,8 +183,13 @@ const pipeArecordToSox = (
     return settled;
 };
 
-const terminateProcess = (process: ChildProcessWithoutNullStreams) => {
+const terminateProcess = (
+    process: ChildProcessWithoutNullStreams,
+    label: string,
+    log?: (msg: string) => void,
+) => {
     if (!process.killed) {
+        log?.(`Sending SIGTERM to ${label} pid ${process.pid ?? 'unknown'}`);
         process.kill('SIGTERM');
     }
 };
@@ -185,31 +207,37 @@ export const testAlsaCaptureDevice = async (
     const arecordPath = options.arecordPath ?? 'arecord';
     const soxPath = options.soxPath ?? 'sox';
 
-    options.log?.(`Testing audio input ${deviceId} channel ${channel}/${channelCount} for ${durationSeconds}s`);
-
-    const arecord = spawn(arecordPath, buildArecordArgs({
+    const arecordArgs = buildArecordArgs({
         deviceId,
         sampleRate,
         channelCount,
         durationSeconds,
-    }));
-    const sox = spawn(soxPath, buildSoxArgs({
+    });
+    const soxArgs = buildSoxArgs({
         sampleRate,
         channelCount,
         selectedChannel: channel,
         outputFilePath: filePath,
-    }));
+    });
+
+    options.log?.(`Testing audio input ${deviceId} channel ${channel}/${channelCount} for ${durationSeconds}s`);
+    options.log?.(`Audio test arecord command: ${formatCommand(arecordPath, arecordArgs)}`);
+    options.log?.(`Audio test sox command: ${formatCommand(soxPath, soxArgs)}`);
+
+    const arecord = spawn(arecordPath, arecordArgs);
+    const sox = spawn(soxPath, soxArgs);
 
     try {
-        await pipeArecordToSox(arecord, sox);
+        await pipeArecordToSox(arecord, sox, options.log);
         const stats = await fs.promises.stat(filePath);
+        options.log?.(`Audio input test wrote ${stats.size} bytes to temporary WAV`);
         if (stats.size <= 44) {
             throw new Error('Audio test completed, but the WAV file did not contain audio samples');
         }
         options.log?.('Audio input test succeeded');
     } finally {
-        terminateProcess(arecord);
-        terminateProcess(sox);
+        terminateProcess(arecord, 'arecord', options.log);
+        terminateProcess(sox, 'sox', options.log);
         await fs.promises.rm(filePath, {force: true});
     }
 };
@@ -232,16 +260,21 @@ export class LinuxAudioRecorder implements AudioRecorder {
         const arecordPath = this.options.arecordPath ?? 'arecord';
         const soxPath = this.options.soxPath ?? 'sox';
 
-        this.options.log?.(`Starting audio recording ${fileName} from ${deviceId} channel ${channel}/${channelCount}`);
-
-        const arecord = spawn(arecordPath, buildArecordArgs({deviceId, sampleRate, channelCount}));
-        const sox = spawn(soxPath, buildSoxArgs({
+        const arecordArgs = buildArecordArgs({deviceId, sampleRate, channelCount});
+        const soxArgs = buildSoxArgs({
             sampleRate,
             channelCount,
             selectedChannel: channel,
             outputFilePath: filePath,
-        }));
-        const settled = pipeArecordToSox(arecord, sox);
+        });
+
+        this.options.log?.(`Starting audio recording ${fileName} from ${deviceId} channel ${channel}/${channelCount}`);
+        this.options.log?.(`Audio arecord command: ${formatCommand(arecordPath, arecordArgs)}`);
+        this.options.log?.(`Audio sox command: ${formatCommand(soxPath, soxArgs)}`);
+
+        const arecord = spawn(arecordPath, arecordArgs);
+        const sox = spawn(soxPath, soxArgs);
+        const settled = pipeArecordToSox(arecord, sox, this.options.log);
 
         this.running = {takeId, fileName, filePath, arecord, sox, settled};
     }
@@ -251,10 +284,12 @@ export class LinuxAudioRecorder implements AudioRecorder {
         if (!running) return null;
         this.running = null;
 
-        terminateProcess(running.arecord);
+        this.options.log?.(`Stopping audio recording ${running.fileName} for take ${running.takeId}`);
+        terminateProcess(running.arecord, 'arecord', this.options.log);
 
         await running.settled;
-        this.options.log?.(`Audio saved: ${running.fileName}`);
+        const stats = await fs.promises.stat(running.filePath);
+        this.options.log?.(`Audio saved: ${running.fileName} (${stats.size} bytes)`);
 
         return {
             fileName: running.fileName,
