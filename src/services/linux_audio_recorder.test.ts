@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
     buildArecordArgs,
     buildSoxArgs,
+    buildSoxTrimArgs,
     generateAudioFileName,
     parseArecordListOutput,
     sanitizeRecordingFilePart,
@@ -76,6 +77,20 @@ test('buildSoxArgs remixes one selected channel into a mono WAV', () => {
         '/tmp/test.wav',
         'remix',
         '2',
+    ]);
+});
+
+test('buildSoxTrimArgs trims a WAV to the requested duration', () => {
+    assert.deepEqual(buildSoxTrimArgs({
+        inputFilePath: '/tmp/input.wav',
+        outputFilePath: '/tmp/output.wav',
+        durationSeconds: 42.34567,
+    }), [
+        '/tmp/input.wav',
+        '/tmp/output.wav',
+        'trim',
+        '0',
+        '42.346',
     ]);
 });
 

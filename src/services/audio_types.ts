@@ -40,7 +40,11 @@ export type AudioRecorderStartArgs = {
     config: AudioRecordingConfig;
 };
 
+export type AudioRecorderStopArgs = {
+    trimDurationSeconds?: number;
+};
+
 export interface AudioRecorder {
     start(args: AudioRecorderStartArgs): Promise<void>;
-    stop(): Promise<RecordedAudioFile | null>;
+    stop(args?: AudioRecorderStopArgs): Promise<RecordedAudioFile | null>;
 }

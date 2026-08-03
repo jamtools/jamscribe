@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {promisify} from 'node:util';
 
-import type {AudioDeviceInfo, AudioRecorder, AudioRecorderStartArgs, AudioRecordingConfig, RecordedAudioFile} from './audio_types';
+import type {AudioDeviceInfo, AudioRecorder, AudioRecorderStartArgs, AudioRecorderStopArgs, AudioRecordingConfig, RecordedAudioFile} from './audio_types';
 
 const execFileAsync = promisify(execFile);
 
@@ -43,6 +43,12 @@ type SoxProcessArgs = {
     channelCount: number;
     selectedChannel: number;
     outputFilePath: string;
+};
+
+type SoxTrimArgs = {
+    inputFilePath: string;
+    outputFilePath: string;
+    durationSeconds: number;
 };
 
 type AudioCaptureSmokeTestOptions = {
@@ -122,6 +128,14 @@ export const buildSoxArgs = ({sampleRate, channelCount, selectedChannel, outputF
     String(selectedChannel),
 ];
 
+export const buildSoxTrimArgs = ({inputFilePath, outputFilePath, durationSeconds}: SoxTrimArgs): string[] => [
+    inputFilePath,
+    outputFilePath,
+    'trim',
+    '0',
+    durationSeconds.toFixed(3),
+];
+
 const formatCommand = (command: string, args: string[]): string => [
     command,
     ...args.map(arg => /[\s"']/.test(arg) ? JSON.stringify(arg) : arg),
@@ -199,6 +213,33 @@ const terminateProcess = (
     if (!process.killed) {
         log?.(`Sending SIGTERM to ${label} pid ${process.pid ?? 'unknown'}`);
         process.kill('SIGTERM');
+    }
+};
+
+const trimAudioFile = async (
+    filePath: string,
+    durationSeconds: number,
+    soxPath: string,
+    log?: (msg: string) => void,
+) => {
+    if (durationSeconds <= 0) {
+        return;
+    }
+
+    const trimmedFilePath = `${filePath}.trimmed-${Date.now()}.wav`;
+    const trimArgs = buildSoxTrimArgs({
+        inputFilePath: filePath,
+        outputFilePath: trimmedFilePath,
+        durationSeconds,
+    });
+
+    log?.(`Trimming audio to ${durationSeconds.toFixed(3)}s with command: ${formatCommand(soxPath, trimArgs)}`);
+    try {
+        await execFileAsync(soxPath, trimArgs);
+        await fs.promises.rename(trimmedFilePath, filePath);
+    } catch (error) {
+        await fs.promises.rm(trimmedFilePath, {force: true});
+        throw error;
     }
 };
 
@@ -294,7 +335,7 @@ export class LinuxAudioRecorder implements AudioRecorder {
         this.running = {takeId, fileName, filePath, arecord, sox, settled, stopRequested};
     }
 
-    async stop(): Promise<RecordedAudioFile | null> {
+    async stop(args: AudioRecorderStopArgs = {}): Promise<RecordedAudioFile | null> {
         const running = this.running;
         if (!running) return null;
         this.running = null;
@@ -304,6 +345,9 @@ export class LinuxAudioRecorder implements AudioRecorder {
         terminateProcess(running.arecord, 'arecord', this.options.log);
 
         await running.settled;
+        if (args.trimDurationSeconds !== undefined) {
+            await trimAudioFile(running.filePath, args.trimDurationSeconds, this.options.soxPath ?? 'sox', this.options.log);
+        }
         const stats = await fs.promises.stat(running.filePath);
         this.options.log?.(`Audio saved: ${running.fileName} (${stats.size} bytes)`);
 

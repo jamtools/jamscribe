@@ -6,6 +6,7 @@ import {MidiEventFull} from '@jamtools/core/modules/macro_module/macro_module_ty
 import {StateSupervisor} from 'springboard/services/states/shared_state_service';
 import type {AudioRecorder, AudioRecordingConfig, AudioRecordingStatus} from './audio_types';
 import type {RecordingConfig} from './recording_config';
+import {calculateAudioTrimDurationSeconds, DEFAULT_AUDIO_TAIL_PADDING_SECONDS} from './audio_trim';
 
 const sendPushNotification = (data: {title: string, data: {url: string}}) => {
 
@@ -34,6 +35,8 @@ export class MidiRecorderImpl {
     private deviceTimeouts: {[deviceName: string]: NodeJS.Timeout | undefined} = {};
     private recordedEvents: {[deviceName: string]: LoggedMidiEvent[]} = {};
     private currentTakeId: string | null = null;
+    private currentAudioStartTime: number | null = null;
+    private lastMidiEventTime: number | null = null;
     // private INACTIVITY_LIMIT = FIVE_SECONDS;
 
     constructor(
@@ -79,8 +82,9 @@ export class MidiRecorderImpl {
         this.deviceActivity[deviceName] = true;
 
         if (shouldStartTake) {
-            this.startTake();
+            this.startTake(time);
         }
+        this.lastMidiEventTime = time;
 
         // Store the event in memory
         if (!this.recordedEvents[deviceName]?.length) {
@@ -93,9 +97,11 @@ export class MidiRecorderImpl {
         this.resetDeviceInactivityTimerForDevice(deviceName);
     };
 
-    private startTake = () => {
+    private startTake = (startTime: number) => {
         const takeId = this.generateTakeId();
         this.currentTakeId = takeId;
+        this.currentAudioStartTime = startTime;
+        this.lastMidiEventTime = startTime;
         this.recordingStatusState?.setState({state: 'recording', activeTakeId: takeId, message: 'Recording MIDI and audio'});
 
         const audioConfig = this.audioRecordingConfigState.getState();
@@ -124,7 +130,15 @@ export class MidiRecorderImpl {
 
         if (this.audioRecorder) {
             try {
-                const audioFile = await this.audioRecorder.stop();
+                const trimDurationSeconds = calculateAudioTrimDurationSeconds({
+                    audioStartTime: this.currentAudioStartTime,
+                    lastMidiEventTime: this.lastMidiEventTime,
+                    tailPaddingSeconds: DEFAULT_AUDIO_TAIL_PADDING_SECONDS,
+                });
+                if (trimDurationSeconds !== undefined) {
+                    this.logger.log(`Trimming audio to last MIDI event plus ${DEFAULT_AUDIO_TAIL_PADDING_SECONDS}s tail (${trimDurationSeconds.toFixed(3)}s)`);
+                }
+                const audioFile = await this.audioRecorder.stop({trimDurationSeconds});
                 if (audioFile) {
                     if (!this.fileSaver.uploadFileFromPath) {
                         throw new Error('audio file upload is not available in this runtime');
@@ -144,6 +158,8 @@ export class MidiRecorderImpl {
         }
 
         this.currentTakeId = null;
+        this.currentAudioStartTime = null;
+        this.lastMidiEventTime = null;
     };
 
     private getInactivityLimit = () => {
