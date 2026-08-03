@@ -17,6 +17,7 @@ import {initialAudioRecordingConfig} from './services/audio_types';
 import {uploadFile, uploadFileFromPath} from './services/upload_service';
 import {LinuxAudioRecorder, listAlsaCaptureDevices} from './services/linux_audio_recorder';
 // @platform end
+import {rebindAudioConfigToAvailableDevice} from './services/audio_device_selection';
 
 let fileSaver: FileSaver | undefined;
 
@@ -222,11 +223,29 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
             // @platform "node"
             const devices = await listAlsaCaptureDevices();
             audioInputDevices.setState(devices);
+            const savedAudioConfig = audioRecordingConfig.getState();
+            const reboundSavedAudioConfig = rebindAudioConfigToAvailableDevice(savedAudioConfig, devices);
+            if (reboundSavedAudioConfig.deviceId !== savedAudioConfig.deviceId) {
+                log(`Audio device changed from ${savedAudioConfig.deviceId} to ${reboundSavedAudioConfig.deviceId}; updating saved selection`);
+                audioRecordingConfig.setState(reboundSavedAudioConfig);
+            } else if (reboundSavedAudioConfig.deviceLabel !== savedAudioConfig.deviceLabel) {
+                audioRecordingConfig.setState(reboundSavedAudioConfig);
+            }
+
+            const draftAudioConfig = draftAudioRecordingConfig.getState();
+            const reboundDraftAudioConfig = rebindAudioConfigToAvailableDevice(draftAudioConfig, devices);
+            if (reboundDraftAudioConfig.deviceId !== draftAudioConfig.deviceId) {
+                log(`Audio device changed from ${draftAudioConfig.deviceId} to ${reboundDraftAudioConfig.deviceId}; updating draft selection`);
+                draftAudioRecordingConfig.setState(reboundDraftAudioConfig);
+            } else if (reboundDraftAudioConfig.deviceLabel !== draftAudioConfig.deviceLabel) {
+                draftAudioRecordingConfig.setState(reboundDraftAudioConfig);
+            }
             return {devices};
             // @platform end
             return {devices: audioInputDevices.getState()};
         },
         testDraftAudioInput: async () => {
+            await (await actions.refreshAudioInputDevices());
             const audioConfig = draftAudioRecordingConfig.getState();
             if (!audioConfig.enabled) {
                 recordingStatus.setState({
@@ -288,9 +307,27 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     });
 
     // @platform "node"
-    void actions.refreshAudioInputDevices().catch(error => {
-        console.error('Failed to list ALSA capture devices:', error);
-    });
+    const refreshAudioInputDevicesWithRetry = (attempt = 1) => {
+        const maxAttempts = 10;
+        const retryDelayMs = Math.min(30_000, attempt * 2_000);
+
+        void actions.refreshAudioInputDevices()
+            .then(async refreshResult => {
+                const {devices} = await refreshResult;
+                log(`Audio device refresh found ${devices.length} capture device${devices.length === 1 ? '' : 's'}`);
+                if (devices.length === 0 && attempt < maxAttempts) {
+                    setTimeout(() => refreshAudioInputDevicesWithRetry(attempt + 1), retryDelayMs);
+                }
+            })
+            .catch(error => {
+                const message = error instanceof Error ? error.message : String(error);
+                log(`Failed to list ALSA capture devices on attempt ${attempt}/${maxAttempts}: ${message}`);
+                if (attempt < maxAttempts) {
+                    setTimeout(() => refreshAudioInputDevicesWithRetry(attempt + 1), retryDelayMs);
+                }
+            });
+    };
+    refreshAudioInputDevicesWithRetry();
     // @platform end
 
     moduleAPI.registerRoute('/', {}, () => (

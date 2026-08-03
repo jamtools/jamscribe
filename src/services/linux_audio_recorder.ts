@@ -24,6 +24,7 @@ type RunningRecording = {
     arecord: ChildProcessWithoutNullStreams;
     sox: ChildProcessWithoutNullStreams;
     settled: Promise<void>;
+    stopRequested: {value: boolean};
 };
 
 type ParseArecordListOptions = {
@@ -130,6 +131,7 @@ const waitForProcessClose = (
     process: ChildProcessWithoutNullStreams,
     label: string,
     log?: (msg: string) => void,
+    isExpectedNonZeroExit?: () => boolean,
 ): Promise<void> => new Promise((resolve, reject) => {
     let stderr = '';
 
@@ -151,6 +153,11 @@ const waitForProcessClose = (
             resolve();
             return;
         }
+        if (isExpectedNonZeroExit?.()) {
+            log?.(`${label} non-zero exit was expected after stopping capture`);
+            resolve();
+            return;
+        }
         reject(new Error(`${label} exited with code ${code} signal ${signal ?? 'null'}${stderr ? `: ${stderr.trim()}` : ''}`));
     });
 });
@@ -169,10 +176,11 @@ const pipeArecordToSox = (
     arecord: ChildProcessWithoutNullStreams,
     sox: ChildProcessWithoutNullStreams,
     log?: (msg: string) => void,
+    isArecordExpectedNonZeroExit?: () => boolean,
 ): Promise<void> => {
     arecord.stdout.pipe(sox.stdin);
     const settled = Promise.all([
-        waitForProcessClose(arecord, 'arecord', log),
+        waitForProcessClose(arecord, 'arecord', log, isArecordExpectedNonZeroExit),
         waitForProcessClose(sox, 'sox', log),
     ]).then(() => undefined);
 
@@ -280,9 +288,10 @@ export class LinuxAudioRecorder implements AudioRecorder {
 
         const arecord = spawn(arecordPath, arecordArgs);
         const sox = spawn(soxPath, soxArgs);
-        const settled = pipeArecordToSox(arecord, sox, this.options.log);
+        const stopRequested = {value: false};
+        const settled = pipeArecordToSox(arecord, sox, this.options.log, () => stopRequested.value);
 
-        this.running = {takeId, fileName, filePath, arecord, sox, settled};
+        this.running = {takeId, fileName, filePath, arecord, sox, settled, stopRequested};
     }
 
     async stop(): Promise<RecordedAudioFile | null> {
@@ -291,6 +300,7 @@ export class LinuxAudioRecorder implements AudioRecorder {
         this.running = null;
 
         this.options.log?.(`Stopping audio recording ${running.fileName} for take ${running.takeId}`);
+        running.stopRequested.value = true;
         terminateProcess(running.arecord, 'arecord', this.options.log);
 
         await running.settled;
