@@ -21,6 +21,7 @@ type ConfigModalProps = {
     onDraftAudioSampleRateChange: (sampleRate: number) => void;
     submitAudioRecordingConfigChange: () => void;
     refreshAudioInputDevices: () => void;
+    testDraftAudioInput: () => void;
 };
 
 export function asModal<P extends { isOpen: boolean; onClose: () => void }>(
@@ -69,7 +70,12 @@ function ConfigModalBase({
     onDraftAudioSampleRateChange,
     submitAudioRecordingConfigChange,
     refreshAudioInputDevices,
+    testDraftAudioInput,
 }: ConfigModalProps) {
+    const selectedAudioDeviceIsListed =
+        draftAudioConfig.deviceId === 'default' ||
+        audioInputDevices.some(device => device.id === draftAudioConfig.deviceId);
+
     return (
         <div>
             <div className="modal-header">
@@ -143,12 +149,17 @@ function ConfigModalBase({
                         }}
                     >
                         <option value="default">Default ALSA input</option>
+                        {!selectedAudioDeviceIsListed && (
+                            <option value={draftAudioConfig.deviceId}>
+                                {draftAudioConfig.deviceLabel || draftAudioConfig.deviceId}
+                            </option>
+                        )}
                         {audioInputDevices.map(device => (
                             <option key={device.id} value={device.id}>{device.label}</option>
                         ))}
                     </select>
                     <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
-                        Devices come from <code>arecord -l</code>. Use the default device if ALSA is already configured.
+                        Devices come from <code>arecord -l</code>. JamScribe prefers <code>plughw</code> entries so USB interfaces like Scarlett 2i2 can use ALSA format/rate conversion when needed.
                     </p>
                 </div>
 
@@ -202,6 +213,20 @@ function ConfigModalBase({
                         max={192000}
                         step={1000}
                     />
+                </div>
+
+                <div className="form-group">
+                    <button
+                        type="button"
+                        className="btn-outline"
+                        onClick={testDraftAudioInput}
+                        disabled={!draftAudioConfig.enabled}
+                    >
+                        Test audio input
+                    </button>
+                    <p className="text-muted" style={{fontSize: '0.875rem', marginTop: '0.5rem'}}>
+                        Records a short temporary WAV using the current draft settings, then deletes it. Result appears in Recording Status.
+                    </p>
                 </div>
             </div>
             <div className="modal-footer">

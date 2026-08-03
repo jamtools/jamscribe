@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {generateAudioFileName, parseArecordListOutput, sanitizeRecordingFilePart} from './linux_audio_recorder';
+import {
+    buildArecordArgs,
+    buildSoxArgs,
+    generateAudioFileName,
+    parseArecordListOutput,
+    sanitizeRecordingFilePart,
+} from './linux_audio_recorder';
 
-test('parseArecordListOutput returns stable ALSA hardware device ids and labels', () => {
+test('parseArecordListOutput returns ALSA plughw device ids and labels by default', () => {
     const output = [
         '**** List of CAPTURE Hardware Devices ****',
         'card 1: USB [USB Audio], device 0: USB Audio [USB Audio]',
@@ -13,8 +19,8 @@ test('parseArecordListOutput returns stable ALSA hardware device ids and labels'
     ].join('\n');
 
     assert.deepEqual(parseArecordListOutput(output), [
-        {id: 'hw:1,0', label: 'USB Audio (hw:1,0)'},
-        {id: 'hw:2,3', label: 'Codec Capture · bcm2835 Headphones (hw:2,3)'},
+        {id: 'plughw:1,0', label: 'USB Audio (plughw:1,0)', hardwareId: 'hw:1,0'},
+        {id: 'plughw:2,3', label: 'Codec Capture · bcm2835 Headphones (plughw:2,3)', hardwareId: 'hw:2,3'},
     ]);
 });
 
@@ -25,7 +31,53 @@ test('parseArecordListOutput ignores duplicate capture device lines', () => {
     ].join('\n');
 
     assert.deepEqual(parseArecordListOutput(output), [
-        {id: 'hw:1,0', label: 'USB Audio (hw:1,0)'},
+        {id: 'plughw:1,0', label: 'USB Audio (plughw:1,0)', hardwareId: 'hw:1,0'},
+    ]);
+});
+
+test('parseArecordListOutput can expose strict hw ids for low-level debugging', () => {
+    const output = 'card 1: USB [Scarlett 2i2 USB], device 0: USB Audio [USB Audio]';
+
+    assert.deepEqual(parseArecordListOutput(output, {devicePrefix: 'hw'}), [
+        {id: 'hw:1,0', label: 'Scarlett 2i2 USB · USB Audio (hw:1,0)', hardwareId: 'hw:1,0'},
+    ]);
+});
+
+test('buildArecordArgs records bounded raw PCM with selected ALSA device settings', () => {
+    assert.deepEqual(buildArecordArgs({
+        deviceId: 'plughw:1,0',
+        sampleRate: 48000,
+        channelCount: 2,
+        durationSeconds: 3,
+    }), [
+        '-q',
+        '-D', 'plughw:1,0',
+        '-f', 'S16_LE',
+        '-r', '48000',
+        '-c', '2',
+        '-t', 'raw',
+        '-d', '3',
+    ]);
+});
+
+test('buildSoxArgs remixes one selected channel into a mono WAV', () => {
+    assert.deepEqual(buildSoxArgs({
+        sampleRate: 44100,
+        channelCount: 2,
+        selectedChannel: 2,
+        outputFilePath: '/tmp/test.wav',
+    }), [
+        '-q',
+        '-t', 'raw',
+        '-b', '16',
+        '-e', 'signed-integer',
+        '-L',
+        '-r', '44100',
+        '-c', '2',
+        '-',
+        '/tmp/test.wav',
+        'remix',
+        '2',
     ]);
 });
 

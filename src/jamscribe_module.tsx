@@ -11,7 +11,7 @@ import type {AudioDeviceInfo, AudioRecordingStatus} from './services/audio_types
 
 // @platform "node"
 import {uploadFile, uploadFileFromPath} from './services/upload_service';
-import {LinuxAudioRecorder, listAlsaCaptureDevices} from './services/linux_audio_recorder';
+import {LinuxAudioRecorder, listAlsaCaptureDevices, testAlsaCaptureDevice} from './services/linux_audio_recorder';
 // @platform end
 
 let fileSaver: FileSaver | undefined;
@@ -184,6 +184,13 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     const logMessages = await moduleAPI.statesAPI.createSharedState<LogMessage[]>('logMessages', []);
     const draftedFiles = await moduleAPI.statesAPI.createSharedState<DraftedFile[]>('draftedFiles', []);
 
+    const log = (msg: string) => {
+        console.log(msg);
+        logMessages.setState(logs => {
+            return [...logs, { message: msg, timestamp: new Date(), id: Math.random().toString().slice(2) }]
+        });
+    }
+
     const actions = moduleAPI.createActions({
         changeDraftInactivityTimeLimit: async ({limit}: {limit: number}) => {
             draftRecordingConfig.setState(c => ({...c, inactivityTimeLimitSeconds: limit}));
@@ -226,6 +233,39 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
             // @platform end
             return {devices: audioInputDevices.getState()};
         },
+        testDraftAudioInput: async () => {
+            const audioConfig = draftRecordingConfig.getState().audio;
+            if (!audioConfig.enabled) {
+                recordingStatus.setState({
+                    state: 'idle',
+                    message: 'Enable audio recording before testing an input.',
+                });
+                return {ok: false};
+            }
+
+            recordingStatus.setState({
+                state: 'testing',
+                message: `Testing ${audioConfig.deviceLabel || audioConfig.deviceId} channel ${audioConfig.channel}...`,
+            });
+
+            try {
+                // @platform "node"
+                await testAlsaCaptureDevice(audioConfig, {outputDir: recordingsDir, log});
+                // @platform end
+                recordingStatus.setState({
+                    state: 'idle',
+                    message: `Audio test succeeded for ${audioConfig.deviceLabel || audioConfig.deviceId} channel ${audioConfig.channel}.`,
+                });
+                return {ok: true};
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                recordingStatus.setState({
+                    state: 'error',
+                    message: `Audio test failed: ${message}`,
+                });
+                return {ok: false, error: message};
+            }
+        },
     });
 
     // @platform "node"
@@ -258,6 +298,7 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
             onDraftAudioSampleRateChange={(sampleRate: number) => actions.changeDraftAudioSampleRate({sampleRate})}
             submitAudioRecordingConfigChange={() => actions.submitAudioRecordingConfig()}
             refreshAudioInputDevices={() => actions.refreshAudioInputDevices()}
+            testDraftAudioInput={() => actions.testDraftAudioInput()}
         />
     ));
 
@@ -278,13 +319,6 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
                 filesModule.uploadFile(file);
             },
         };
-    }
-
-    const log = (msg: string) => {
-        console.log(msg);
-        logMessages.setState(logs => {
-            return [...logs, { message: msg, timestamp: new Date(), id: Math.random().toString().slice(2) }]
-        });
     }
 
     const ioModule = moduleAPI.deps.module.moduleRegistry.getModule('io');
@@ -340,6 +374,7 @@ type MainProps = {
     onDraftAudioSampleRateChange: (sampleRate: number) => void;
     submitAudioRecordingConfigChange: () => void;
     refreshAudioInputDevices: () => void;
+    testDraftAudioInput: () => void;
 }
 
 const Main = ({
@@ -362,6 +397,7 @@ const Main = ({
     onDraftAudioSampleRateChange,
     submitAudioRecordingConfigChange,
     refreshAudioInputDevices,
+    testDraftAudioInput,
 }: MainProps) => {
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
@@ -397,6 +433,7 @@ const Main = ({
                 onDraftAudioSampleRateChange={onDraftAudioSampleRateChange}
                 submitAudioRecordingConfigChange={submitAudioRecordingConfigChange}
                 refreshAudioInputDevices={refreshAudioInputDevices}
+                testDraftAudioInput={testDraftAudioInput}
             />
 
             <div className="main-grid">
@@ -481,7 +518,7 @@ const Main = ({
 }
 
 const RecordingStatusPanel = ({status, config}: {status: AudioRecordingStatus; config: RecordingConfig}) => {
-    const isRecording = status.state === 'recording' || status.state === 'stopping';
+    const isRecording = status.state === 'recording' || status.state === 'stopping' || status.state === 'testing';
     return (
         <div className="card">
             <div className="card-header">
@@ -514,7 +551,10 @@ const AudioDevices = ({devices, config, onRefresh}: {devices: AudioDeviceInfo[];
                     {devices.map(device => (
                         <li key={device.id} className="device-item fade-in">
                             <span className="device-icon">🎙️</span>
-                            <span className="device-name">{device.label}</span>
+                            <span className="device-name">
+                                {device.label}
+                                {device.hardwareId && device.hardwareId !== device.id ? ` · hardware ${device.hardwareId}` : ''}
+                            </span>
                         </li>
                     ))}
                 </ul>

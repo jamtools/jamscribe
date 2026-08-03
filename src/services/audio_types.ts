@@ -1,6 +1,7 @@
 export type AudioDeviceInfo = {
     id: string;
     label: string;
+    hardwareId?: string;
 };
 
 export type AudioRecordingConfig = {
@@ -19,7 +20,7 @@ export type RecordedAudioFile = {
 };
 
 export type AudioRecordingStatus = {
-    state: 'idle' | 'recording' | 'stopping' | 'error';
+    state: 'idle' | 'recording' | 'stopping' | 'testing' | 'error';
     activeTakeId?: string;
     message?: string;
     audioFileName?: string;
