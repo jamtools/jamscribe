@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { RecordingConfig } from '../services/recorder';
+import type {RecordingConfig} from '../services/recording_config';
 import type {AudioDeviceInfo} from '../services/audio_types';
 import {BUILD_COMMIT_HASH} from '../build_info';
 

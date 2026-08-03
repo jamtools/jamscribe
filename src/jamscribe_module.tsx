@@ -6,7 +6,9 @@ import springboard from 'springboard';
 import '@jamtools/core/modules/io/io_module';
 import 'springboard/modules/files/files_module';
 
-import type {FileSaver, RecordingConfig} from './services/recorder';
+import type {FileSaver} from './services/recorder';
+import type {RecordingConfig} from './services/recording_config';
+import {initialRecordingConfig, normalizeRecordingConfig} from './services/recording_config';
 import type {AudioDeviceInfo, AudioRecordingStatus} from './services/audio_types';
 
 // @platform "node"
@@ -41,26 +43,15 @@ type PendingUpload = {
     error?: string;
 };
 
-const initialRecordingConfig: RecordingConfig = {
-    inactivityTimeLimitSeconds: 60,
-    uploaderUrl: '',
-    audio: {
-        enabled: false,
-        deviceId: 'default',
-        deviceLabel: 'Default ALSA input',
-        channel: 1,
-        channelCount: 2,
-        sampleRate: 44100,
-    },
-};
-
 springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
     if (moduleAPI.deps.core.isMaestro()) {
         await moduleAPI.getModule('io').ensureListening();
     }
 
     const recordingConfig = await moduleAPI.statesAPI.createPersistentState('recordingConfig', initialRecordingConfig);
-    const draftRecordingConfig = await moduleAPI.statesAPI.createSharedState('draftRecordingConfig', recordingConfig.getState());
+    const normalizedRecordingConfig = normalizeRecordingConfig(recordingConfig.getState());
+    recordingConfig.setState(normalizedRecordingConfig);
+    const draftRecordingConfig = await moduleAPI.statesAPI.createSharedState('draftRecordingConfig', normalizedRecordingConfig);
     const pendingUploads = await moduleAPI.statesAPI.createPersistentState<PendingUpload[]>('pendingUploads', []);
     const audioInputDevices = await moduleAPI.statesAPI.createSharedState<AudioDeviceInfo[]>('audioInputDevices', []);
     const recordingStatus = await moduleAPI.statesAPI.createSharedState<AudioRecordingStatus>('recordingStatus', {state: 'idle'});
@@ -193,37 +184,51 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
 
     const actions = moduleAPI.createActions({
         changeDraftInactivityTimeLimit: async ({limit}: {limit: number}) => {
-            draftRecordingConfig.setState(c => ({...c, inactivityTimeLimitSeconds: limit}));
+            draftRecordingConfig.setState(c => normalizeRecordingConfig({...c, inactivityTimeLimitSeconds: limit}));
         },
         submitInactivityTimeLimit: async () => {
-            recordingConfig.setState(c => ({...c, inactivityTimeLimitSeconds: draftRecordingConfig.getState().inactivityTimeLimitSeconds}));
+            recordingConfig.setState(c => normalizeRecordingConfig({...c, inactivityTimeLimitSeconds: draftRecordingConfig.getState().inactivityTimeLimitSeconds}));
         },
         changeDraftUploaderUrl: async ({url}: {url: string}) => {
-            draftRecordingConfig.setState(c => ({...c, uploaderUrl: url}));
+            draftRecordingConfig.setState(c => normalizeRecordingConfig({...c, uploaderUrl: url}));
         },
         submitUploaderUrl: async () => {
-            recordingConfig.setState(c => ({...c, uploaderUrl: draftRecordingConfig.getState().uploaderUrl}));
+            recordingConfig.setState(c => normalizeRecordingConfig({...c, uploaderUrl: draftRecordingConfig.getState().uploaderUrl}));
         },
         changeDraftAudioEnabled: async ({enabled}: {enabled: boolean}) => {
-            draftRecordingConfig.setState(c => ({...c, audio: {...c.audio, enabled}}));
+            draftRecordingConfig.setState(c => {
+                const config = normalizeRecordingConfig(c);
+                return {...config, audio: {...config.audio, enabled}};
+            });
         },
         changeDraftAudioDevice: async ({deviceId, deviceLabel}: {deviceId: string; deviceLabel: string}) => {
-            draftRecordingConfig.setState(c => ({...c, audio: {...c.audio, deviceId, deviceLabel}}));
+            draftRecordingConfig.setState(c => {
+                const config = normalizeRecordingConfig(c);
+                return {...config, audio: {...config.audio, deviceId, deviceLabel}};
+            });
         },
         changeDraftAudioChannel: async ({channel}: {channel: number}) => {
             draftRecordingConfig.setState(c => {
+                const config = normalizeRecordingConfig(c);
                 const safeChannel = Math.max(1, channel);
-                return {...c, audio: {...c.audio, channel: safeChannel, channelCount: Math.max(c.audio.channelCount, safeChannel)}};
+                return {...config, audio: {...config.audio, channel: safeChannel, channelCount: Math.max(config.audio.channelCount, safeChannel)}};
             });
         },
         changeDraftAudioChannelCount: async ({channelCount}: {channelCount: number}) => {
-            draftRecordingConfig.setState(c => ({...c, audio: {...c.audio, channelCount: Math.max(c.audio.channel, channelCount)}}));
+            draftRecordingConfig.setState(c => {
+                const config = normalizeRecordingConfig(c);
+                return {...config, audio: {...config.audio, channelCount: Math.max(config.audio.channel, channelCount)}};
+            });
         },
         changeDraftAudioSampleRate: async ({sampleRate}: {sampleRate: number}) => {
-            draftRecordingConfig.setState(c => ({...c, audio: {...c.audio, sampleRate: Math.max(8000, sampleRate)}}));
+            draftRecordingConfig.setState(c => {
+                const config = normalizeRecordingConfig(c);
+                return {...config, audio: {...config.audio, sampleRate: Math.max(8000, sampleRate)}};
+            });
         },
         submitAudioRecordingConfig: async () => {
-            recordingConfig.setState(c => ({...c, audio: draftRecordingConfig.getState().audio}));
+            const draftConfig = normalizeRecordingConfig(draftRecordingConfig.getState());
+            recordingConfig.setState(c => normalizeRecordingConfig({...c, audio: draftConfig.audio}));
         },
         refreshAudioInputDevices: async () => {
             // @platform "node"
@@ -234,7 +239,7 @@ springboard.registerModule('JamScribe', {}, async (moduleAPI) => {
             return {devices: audioInputDevices.getState()};
         },
         testDraftAudioInput: async () => {
-            const audioConfig = draftRecordingConfig.getState().audio;
+            const audioConfig = normalizeRecordingConfig(draftRecordingConfig.getState()).audio;
             if (!audioConfig.enabled) {
                 recordingStatus.setState({
                     state: 'idle',
