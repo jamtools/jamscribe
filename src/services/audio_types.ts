@@ -13,6 +13,15 @@ export type AudioRecordingConfig = {
     sampleRate: number;
 };
 
+export const initialAudioRecordingConfig: AudioRecordingConfig = {
+    enabled: false,
+    deviceId: 'default',
+    deviceLabel: 'Default ALSA input',
+    channel: 1,
+    channelCount: 2,
+    sampleRate: 44100,
+};
+
 export type RecordedAudioFile = {
     fileName: string;
     filePath: string;

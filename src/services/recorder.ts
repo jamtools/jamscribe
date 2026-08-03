@@ -4,9 +4,8 @@ import {Subject} from 'rxjs';
 
 import {MidiEventFull} from '@jamtools/core/modules/macro_module/macro_module_types';
 import {StateSupervisor} from 'springboard/services/states/shared_state_service';
-import type {AudioRecorder, AudioRecordingStatus} from './audio_types';
+import type {AudioRecorder, AudioRecordingConfig, AudioRecordingStatus} from './audio_types';
 import type {RecordingConfig} from './recording_config';
-import {normalizeRecordingConfig} from './recording_config';
 
 const sendPushNotification = (data: {title: string, data: {url: string}}) => {
 
@@ -42,6 +41,7 @@ export class MidiRecorderImpl {
         private logger: Logger,
         private fileSaver: FileSaver,
         private recordingConfigState: StateSupervisor<RecordingConfig>,
+        private audioRecordingConfigState: StateSupervisor<AudioRecordingConfig>,
         private audioRecorder?: AudioRecorder,
         private recordingStatusState?: StateSupervisor<AudioRecordingStatus>,
     ) { }
@@ -98,7 +98,7 @@ export class MidiRecorderImpl {
         this.currentTakeId = takeId;
         this.recordingStatusState?.setState({state: 'recording', activeTakeId: takeId, message: 'Recording MIDI and audio'});
 
-        const audioConfig = normalizeRecordingConfig(this.recordingConfigState.getState()).audio;
+        const audioConfig = this.audioRecordingConfigState.getState();
         if (!audioConfig.enabled || !this.audioRecorder) {
             return;
         }

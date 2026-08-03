@@ -1,12 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-import type {RecordingConfig} from '../services/recording_config';
-import type {AudioDeviceInfo} from '../services/audio_types';
+import type {AudioDeviceInfo, AudioRecordingConfig} from '../services/audio_types';
 import {BUILD_COMMIT_HASH} from '../build_info';
 
 type ConfigModalProps = {
     isOpen: boolean;
     onClose: () => void;
-    recordingConfig: RecordingConfig;
     audioInputDevices: AudioDeviceInfo[];
     draftInactivityTimeLimit: number;
     onDraftInactivityTimeLimitChange: (newLimit: number) => void;
@@ -14,7 +12,7 @@ type ConfigModalProps = {
     draftUploaderUrl: string;
     onDraftUploaderUrlChange: (newUrl: string) => void;
     submitUploaderUrlChange: () => void;
-    draftAudioConfig: RecordingConfig['audio'];
+    draftAudioConfig: AudioRecordingConfig;
     onDraftAudioEnabledChange: (enabled: boolean) => void;
     onDraftAudioDeviceChange: (deviceId: string, deviceLabel: string) => void;
     onDraftAudioChannelChange: (channel: number) => void;
