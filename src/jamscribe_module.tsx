@@ -17,7 +17,7 @@ import {initialAudioRecordingConfig} from './services/audio_types';
 import {uploadFile, uploadFileFromPath} from './services/upload_service';
 import {LinuxAudioRecorder, listAlsaCaptureDevices} from './services/linux_audio_recorder';
 // @platform end
-import {rebindAudioConfigToAvailableDevice} from './services/audio_device_selection';
+import {getAudioDevicesForDisplay, rebindAudioConfigToAvailableDevice} from './services/audio_device_selection';
 
 let fileSaver: FileSaver | undefined;
 
@@ -596,6 +596,9 @@ const RecordingStatusPanel = ({status, audioConfig}: {status: AudioRecordingStat
 };
 
 const AudioDevices = ({devices, config, onRefresh}: {devices: AudioDeviceInfo[]; config: AudioRecordingConfig; onRefresh: () => void}) => {
+    const displayedDevices = getAudioDevicesForDisplay(devices, config);
+    const isUsingSelectedDeviceFallback = devices.length === 0 && displayedDevices.length > 0;
+
     return (
         <div className="card">
             <div className="card-header">
@@ -605,9 +608,9 @@ const AudioDevices = ({devices, config, onRefresh}: {devices: AudioDeviceInfo[];
             <p className="text-muted">
                 Selected: {config.deviceLabel || config.deviceId}, channel {config.channel} of {config.channelCount}
             </p>
-            {devices.length > 0 ? (
+            {displayedDevices.length > 0 ? (
                 <ul className="device-list">
-                    {devices.map(device => (
+                    {displayedDevices.map(device => (
                         <li key={device.id} className="device-item fade-in">
                             <span className="device-icon">🎙️</span>
                             <span className="device-name">
@@ -617,12 +620,17 @@ const AudioDevices = ({devices, config, onRefresh}: {devices: AudioDeviceInfo[];
                         </li>
                     ))}
                 </ul>
-            ) : (
+            ) : isUsingSelectedDeviceFallback ? null : (
                 <div className="empty-state">
                     <div className="empty-state-icon">🎙️</div>
-                    <p className="text-muted mb-0">No ALSA capture devices found</p>
-                    <p className="text-muted">Install/configure ALSA devices on the Raspberry Pi, then refresh.</p>
+                    <p className="text-muted mb-0">Looking for ALSA capture devices...</p>
+                    <p className="text-muted">JamScribe checks automatically on startup. Use Refresh only if you just plugged in a device.</p>
                 </div>
+            )}
+            {isUsingSelectedDeviceFallback && (
+                <p className="text-muted">
+                    Device list is still refreshing automatically; JamScribe will use the saved selected device for recording.
+                </p>
             )}
         </div>
     );

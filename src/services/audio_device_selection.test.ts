@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {getStableAudioDeviceLabel, rebindAudioConfigToAvailableDevice} from './audio_device_selection';
+import {getAudioDevicesForDisplay, getStableAudioDeviceLabel, rebindAudioConfigToAvailableDevice} from './audio_device_selection';
 import type {AudioRecordingConfig} from './audio_types';
 
 const scarlettConfig: AudioRecordingConfig = {
@@ -51,4 +51,21 @@ test('rebindAudioConfigToAvailableDevice leaves default ALSA input alone', () =>
             hardwareId: 'hw:2,0',
         },
     ]), defaultConfig);
+});
+
+test('getAudioDevicesForDisplay shows selected device while ALSA list is still loading', () => {
+    assert.deepEqual(getAudioDevicesForDisplay([], scarlettConfig), [{
+        id: 'plughw:1,0',
+        label: 'Scarlett 2i2 USB · USB Audio (plughw:1,0)',
+    }]);
+});
+
+test('getAudioDevicesForDisplay preserves enumerated devices when available', () => {
+    const devices = [{
+        id: 'plughw:2,0',
+        label: 'Scarlett 2i2 USB · USB Audio (plughw:2,0)',
+        hardwareId: 'hw:2,0',
+    }];
+
+    assert.equal(getAudioDevicesForDisplay(devices, scarlettConfig), devices);
 });
